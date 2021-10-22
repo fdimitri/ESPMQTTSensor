@@ -38,12 +38,12 @@ PubSubClient client(espClient);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-void parse_systemInitDevice(char *, unsigned int);
-void parse_configStub(char *, unsigned int);
+void parse_systemInitDevice(char *, char *[], unsigned int);
+void parse_configStub(char *, char *[], unsigned int);
 void sensor_get_stub(char *);
 struct msgCallbackList {
   const char *command;
-  void (*callback)(char *msg, unsigned int msgLength);
+  void (*callback)(char *topic, char *argv[], unsigned int argc);
 };
 
 struct msgCallbackList msgs[] = {
@@ -61,9 +61,10 @@ struct msgCallbackList msgs[] = {
 };
 
 struct deviceConfiguration {
-  const char *devName;
-  const char *deviceMAC;
-  uint32_t deviceIP;
+  char name[64];
+  char wifimac[18];
+  char location[64];
+  uint32_t ip;
 };
 
 struct deviceConfiguration device {
@@ -103,7 +104,7 @@ void setup() {
   // Set software serial baud to 115200;
   Serial.begin(115200);
   Wire.begin();
-  device.devName = "newname";
+  
   // connecting to a WiFi network
   WiFi.begin(STASSID, STAPSK);
   while (WiFi.status() != WL_CONNECTED) {
@@ -182,7 +183,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
   display.setCursor(0,0);
   drawTextLn(topic, strlen(topic));
   drawTextLn((char *) payload, length);
-  parseMessage((char *) payload, length);
+  parseMessage(topic, (char *) payload, length);
 }
 
 
@@ -198,20 +199,50 @@ void loop() {
 }
 
 
-void parse_systemInitDevice(char *msg, unsigned int msgLength) {
+void parse_systemInitDevice(char *topic, char *argv[], unsigned int argc) {
+  
   return;
 }
 
-void parse_configStub(char *msg, unsigned int msgLength) {
+void parse_configStub(char *topic, char *argv[], unsigned int argc) {
 
 }
 
-void parseMessage(char *msg, unsigned int msgLength) {
+void parse_configName(char *topic, char *argv[], unsigned int argc) {
+  if (argc != 2) {
+    // incorrect number of params
+    return;
+  }
+  memcpy(device.name, argv[1], strlen(argv[1]));
+}
+
+void parse_configLocation(char *topic, char *argv[], unsigned int argc) {
+  if (argc != 2) {
+    // incorrect number of params
+    return;
+  }
+  memcpy(device.location, argv[1], strlen(argv[1]));
+}
+
+void parseMessage(char *topic, char *omsg, unsigned int msgLength) {
+  char *argv[32];
+  unsigned int argc = 0;
+  char *msg, *msgstart;
+  msgstart = msg = (char *) malloc(msgLength + 1);
+  memcpy(msg, omsg, msgLength);
+  msg[msgLength] = '\0';
+  argv[0] = strtok(msg, " ");
+  while (msg != NULL && argc < 32) {
+    argv[++argc] = msg;
+    msg = strtok(NULL, " ");
+  }
+  free(msgstart);
+  Serial.print("Free heap: "); Serial.println(ESP.getFreeHeap());
   Serial.println("Seeing if message has callback");
   for (unsigned int i = 0; msgs[i].command != NULL; i++) {
-    if (!strncmp(msgs[i].command, msg, strlen(msgs[i].command))) {
+    if (strlen(msgs[i].command) == strlen(argv[0]) && !strcmp(msgs[i].command, argv[0])) {
       Serial.print("Found message callback "); Serial.print(msgs[i].command); Serial.println(" .. executing callback");
-      msgs[i].callback(msg, msgLength);
+      msgs[i].callback(topic, argv, argc + 1);
     }
   }
   
