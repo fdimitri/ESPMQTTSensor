@@ -38,25 +38,32 @@ PubSubClient client(espClient);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-void parse_systemInitDevice(char *, char *[], unsigned int);
-void parse_configStub(char *, char *[], unsigned int);
+void parse_system_init_device(char *, char *[], unsigned int);
+void parse_config_stub(char *, char *[], unsigned int);
+void parse_config_name(char *, char *[], unsigned int);
+void parse_config_location(char *, char *[], unsigned int);
+
 void sensor_get_stub(char *);
+void sensor_get_free_heap(char *);
+void sensor_get_total_heap(char *);
+void sensor_get_uptime(char *);
+
 struct msgCallbackList {
   const char *command;
   void (*callback)(char *topic, char *argv[], unsigned int argc);
 };
 
 struct msgCallbackList msgs[] = {
-  { "SYSTEM.INIT.DEVICE", parse_systemInitDevice },
-  { "SYSTEM.INIT.DEVICE.SENSOR", parse_systemInitDevice },
-  { "SYSTEM.INIT.DEVICE.CONTROL", parse_systemInitDevice },
-  { "DEVICE.CONFIG.WIFI", parse_configStub },
-  { "DEVICE.CONFIG.NAME", parse_configStub },
-  { "DEVICE.CONFIG.LOCATION", parse_configStub },
-  { "GET.SENSORS", parse_configStub },
-  { "UPDATE.SENSOR", parse_configStub },
-  { "GET.STATE", parse_configStub },
-  { "SET.STATE", parse_configStub },
+  { "SYSTEM.INIT.DEVICE", parse_system_init_device },
+  { "SYSTEM.INIT.DEVICE.SENSOR", parse_system_init_device },
+  { "SYSTEM.INIT.DEVICE.CONTROL", parse_system_init_device },
+  { "DEVICE.CONFIG.WIFI", parse_config_stub },
+  { "DEVICE.CONFIG.NAME", parse_config_name },
+  { "DEVICE.CONFIG.LOCATION", parse_config_location },
+  { "GET.SENSORS", parse_config_stub },
+  { "UPDATE.SENSOR", parse_config_stub },
+  { "GET.STATE", parse_config_stub },
+  { "SET.STATE", parse_config_stub },
   { NULL, NULL },
 };
 
@@ -86,10 +93,10 @@ struct sensorControlData sensors[] = {
   { "comfort.lightLevel", "", 0, sensor_get_stub, NULL, NULL },
   { "comfort.noiseLevel", "", 0, sensor_get_stub, NULL, NULL },
   { "system.wifi.RSSI", "", 0, sensor_get_stub, NULL, NULL, },
-  { "system.uptime", "", 0, sensor_get_stub, NULL, NULL, },
+  { "system.uptime", "", 0, sensor_get_uptime, NULL, NULL, },
   { "system.battery.voltage", "", 0, sensor_get_stub, NULL, NULL, },
-  { "system.memory.free", "", 0, sensor_get_stub, NULL, NULL },
-  { "system.memory.total", "", 0, sensor_get_stub, NULL, NULL },
+  { "system.memory.free", "", 0, sensor_get_free_heap, NULL, NULL },
+  { "system.memory.total", "", 0, sensor_get_total_heap, NULL, NULL },
   { "comfort.fan1", "", 1, NULL, sensor_get_stub, sensor_get_stub },
   { "comfort.fan2", "", 1, NULL, sensor_get_stub, sensor_get_stub },
   { NULL, "", 0, NULL, NULL, NULL },
@@ -97,6 +104,18 @@ struct sensorControlData sensors[] = {
 
 
 void sensor_get_stub(char *buf) {
+}
+
+void sensor_get_uptime(char *buf) {
+  sprintf(buf, "%lld", esp_timer_get_time());
+}
+
+void sensor_get_free_heap(char *buf) {
+  sprintf(buf, "%d", ESP.getFreeHeap());
+}
+
+void sensor_get_total_heap(char *buf) {
+  sprintf(buf, "%d", ESP.getHeapSize());
 }
 
 void setup() {
@@ -125,7 +144,7 @@ void setup() {
   client.setCallback(callback);
   while (!client.connected()) {
       String client_id = "esp8266-client-";
-      //client_id += String(WiFi.macAddress());
+      client_id += String(WiFi.macAddress());
       Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
       if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
           Serial.println("Public emqx mqtt broker connected");
@@ -199,16 +218,16 @@ void loop() {
 }
 
 
-void parse_systemInitDevice(char *topic, char *argv[], unsigned int argc) {
+void parse_system_init_device(char *topic, char *argv[], unsigned int argc) {
   
   return;
 }
 
-void parse_configStub(char *topic, char *argv[], unsigned int argc) {
+void parse_config_stub(char *topic, char *argv[], unsigned int argc) {
 
 }
 
-void parse_configName(char *topic, char *argv[], unsigned int argc) {
+void parse_config_name(char *topic, char *argv[], unsigned int argc) {
   if (argc != 2) {
     // incorrect number of params
     return;
@@ -216,7 +235,7 @@ void parse_configName(char *topic, char *argv[], unsigned int argc) {
   memcpy(device.name, argv[1], strlen(argv[1]));
 }
 
-void parse_configLocation(char *topic, char *argv[], unsigned int argc) {
+void parse_config_location(char *topic, char *argv[], unsigned int argc) {
   if (argc != 2) {
     // incorrect number of params
     return;
