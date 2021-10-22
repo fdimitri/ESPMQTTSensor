@@ -38,32 +38,40 @@ PubSubClient client(espClient);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-void parse_systemInitDevice(char *, unsigned int);
-void parse_configStub(char *, unsigned int);
+void parse_system_init_device(char *, char *[], unsigned int);
+void parse_config_stub(char *, char *[], unsigned int);
+void parse_config_name(char *, char *[], unsigned int);
+void parse_config_location(char *, char *[], unsigned int);
+
 void sensor_get_stub(char *);
+void sensor_get_free_heap(char *);
+void sensor_get_total_heap(char *);
+void sensor_get_uptime(char *);
+
 struct msgCallbackList {
   const char *command;
-  void (*callback)(char *msg, unsigned int msgLength);
+  void (*callback)(char *topic, char *argv[], unsigned int argc);
 };
 
 struct msgCallbackList msgs[] = {
-  { "SYSTEM.INIT.DEVICE", parse_systemInitDevice },
-  { "SYSTEM.INIT.DEVICE.SENSOR", parse_systemInitDevice },
-  { "SYSTEM.INIT.DEVICE.CONTROL", parse_systemInitDevice },
-  { "DEVICE.CONFIG.WIFI", parse_configStub },
-  { "DEVICE.CONFIG.NAME", parse_configStub },
-  { "DEVICE.CONFIG.LOCATION", parse_configStub },
-  { "GET.SENSORS", parse_configStub },
-  { "UPDATE.SENSOR", parse_configStub },
-  { "GET.STATE", parse_configStub },
-  { "SET.STATE", parse_configStub },
+  { "SYSTEM.INIT.DEVICE", parse_system_init_device },
+  { "SYSTEM.INIT.DEVICE.SENSOR", parse_system_init_device },
+  { "SYSTEM.INIT.DEVICE.CONTROL", parse_system_init_device },
+  { "DEVICE.CONFIG.WIFI", parse_config_stub },
+  { "DEVICE.CONFIG.NAME", parse_config_name },
+  { "DEVICE.CONFIG.LOCATION", parse_config_location },
+  { "GET.SENSORS", parse_config_stub },
+  { "UPDATE.SENSOR", parse_config_stub },
+  { "GET.STATE", parse_config_stub },
+  { "SET.STATE", parse_config_stub },
   { NULL, NULL },
 };
 
 struct deviceConfiguration {
-  const char *devName;
-  const char *deviceMAC;
-  uint32_t deviceIP;
+  char name[64];
+  char wifimac[18];
+  char location[64];
+  uint32_t ip;
 };
 
 struct deviceConfiguration device {
@@ -85,10 +93,10 @@ struct sensorControlData sensors[] = {
   { "comfort.lightLevel", "", 0, sensor_get_stub, NULL, NULL },
   { "comfort.noiseLevel", "", 0, sensor_get_stub, NULL, NULL },
   { "system.wifi.RSSI", "", 0, sensor_get_stub, NULL, NULL, },
-  { "system.uptime", "", 0, sensor_get_stub, NULL, NULL, },
+  { "system.uptime", "", 0, sensor_get_uptime, NULL, NULL, },
   { "system.battery.voltage", "", 0, sensor_get_stub, NULL, NULL, },
-  { "system.memory.free", "", 0, sensor_get_stub, NULL, NULL },
-  { "system.memory.total", "", 0, sensor_get_stub, NULL, NULL },
+  { "system.memory.free", "", 0, sensor_get_free_heap, NULL, NULL },
+  { "system.memory.total", "", 0, sensor_get_total_heap, NULL, NULL },
   { "comfort.fan1", "", 1, NULL, sensor_get_stub, sensor_get_stub },
   { "comfort.fan2", "", 1, NULL, sensor_get_stub, sensor_get_stub },
   { NULL, "", 0, NULL, NULL, NULL },
@@ -98,12 +106,24 @@ struct sensorControlData sensors[] = {
 void sensor_get_stub(char *buf) {
 }
 
+void sensor_get_uptime(char *buf) {
+  sprintf(buf, "%lld", esp_timer_get_time());
+}
+
+void sensor_get_free_heap(char *buf) {
+  sprintf(buf, "%d", ESP.getFreeHeap());
+}
+
+void sensor_get_total_heap(char *buf) {
+  sprintf(buf, "%d", ESP.getHeapSize());
+}
+
 void setup() {
 
   // Set software serial baud to 115200;
   Serial.begin(115200);
   Wire.begin();
-  device.devName = "newname";
+  
   // connecting to a WiFi network
   WiFi.begin(STASSID, STAPSK);
   while (WiFi.status() != WL_CONNECTED) {
@@ -124,7 +144,7 @@ void setup() {
   client.setCallback(callback);
   while (!client.connected()) {
       String client_id = "esp8266-client-";
-      //client_id += String(WiFi.macAddress());
+      client_id += String(WiFi.macAddress());
       Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
       if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
           Serial.println("Public emqx mqtt broker connected");
@@ -182,7 +202,7 @@ void callback(char *topic, byte *payload, unsigned int length) {
   display.setCursor(0,0);
   drawTextLn(topic, strlen(topic));
   drawTextLn((char *) payload, length);
-  parseMessage((char *) payload, length);
+  parseMessage(topic, (char *) payload, length);
 }
 
 
@@ -198,20 +218,50 @@ void loop() {
 }
 
 
-void parse_systemInitDevice(char *msg, unsigned int msgLength) {
+void parse_system_init_device(char *topic, char *argv[], unsigned int argc) {
+  
   return;
 }
 
-void parse_configStub(char *msg, unsigned int msgLength) {
+void parse_config_stub(char *topic, char *argv[], unsigned int argc) {
 
 }
 
-void parseMessage(char *msg, unsigned int msgLength) {
+void parse_config_name(char *topic, char *argv[], unsigned int argc) {
+  if (argc != 2) {
+    // incorrect number of params
+    return;
+  }
+  memcpy(device.name, argv[1], strlen(argv[1]));
+}
+
+void parse_config_location(char *topic, char *argv[], unsigned int argc) {
+  if (argc != 2) {
+    // incorrect number of params
+    return;
+  }
+  memcpy(device.location, argv[1], strlen(argv[1]));
+}
+
+void parseMessage(char *topic, char *omsg, unsigned int msgLength) {
+  char *argv[32];
+  unsigned int argc = 0;
+  char *msg, *msgstart;
+  msgstart = msg = (char *) malloc(msgLength + 1);
+  memcpy(msg, omsg, msgLength);
+  msg[msgLength] = '\0';
+  argv[0] = strtok(msg, " ");
+  while (msg != NULL && argc < 32) {
+    argv[++argc] = msg;
+    msg = strtok(NULL, " ");
+  }
+  free(msgstart);
+  Serial.print("Free heap: "); Serial.println(ESP.getFreeHeap());
   Serial.println("Seeing if message has callback");
   for (unsigned int i = 0; msgs[i].command != NULL; i++) {
-    if (!strncmp(msgs[i].command, msg, strlen(msgs[i].command))) {
+    if (strlen(msgs[i].command) == strlen(argv[0]) && !strcmp(msgs[i].command, argv[0])) {
       Serial.print("Found message callback "); Serial.print(msgs[i].command); Serial.println(" .. executing callback");
-      msgs[i].callback(msg, msgLength);
+      msgs[i].callback(topic, argv, argc + 1);
     }
   }
   
