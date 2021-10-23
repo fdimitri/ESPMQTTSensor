@@ -1,23 +1,30 @@
-
+#define ESP8266
+#undef ESP32
 #ifndef STASSID
 #define STASSID "TellMyWiFiFoundSomeoneWhos24"
 #define STAPSK  "TwinTurbo2.7"
 #endif
-//#include <ESP8266WiFi.h>
-
 #define SSD1306_128_32
-
+#ifdef ESP32
 #include <WiFi.h>
+#endif
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#endif
 #include <PubSubClient.h>
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-
+#define DISPLAY_WIDTH 128
+#define DISPLAY_HEIGHT 32
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+#include "parse.h"
+#include "sensors.h"
+#include "structs.h"
 
 // WiFi
 const char *ssid = STASSID; // Enter your WiFi name
@@ -32,117 +39,66 @@ const int mqtt_port = 1883;
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-
-//GxEPD2_BW<GxEPD2_270, GxEPD2_270::HEIGHT> display(GxEPD2_270(/*CS=5*/ 15, /*DC=*/ 4, /*RST=*/ 5, /*BUSY=*/ 16)); // GDEW027W3
-//GxEPD2_BW<GxEPD2_290, GxEPD2_290::HEIGHT> display(GxEPD2_290(15,4,5,16)); // GDEH029A1
-
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
-void parse_system_init_device(char *, char *[], unsigned int);
-void parse_config_stub(char *, char *[], unsigned int);
-void parse_config_name(char *, char *[], unsigned int);
-void parse_config_location(char *, char *[], unsigned int);
-
-void sensor_get_stub(char *);
-void sensor_get_free_heap(char *);
-void sensor_get_total_heap(char *);
-void sensor_get_uptime(char *);
-
-struct msgCallbackList {
-  const char *command;
-  void (*callback)(char *topic, char *argv[], unsigned int argc);
-};
-
-struct msgCallbackList msgs[] = {
-  { "SYSTEM.INIT.DEVICE", parse_system_init_device },
-  { "SYSTEM.INIT.DEVICE.SENSOR", parse_system_init_device },
-  { "SYSTEM.INIT.DEVICE.CONTROL", parse_system_init_device },
-  { "DEVICE.CONFIG.WIFI", parse_config_stub },
-  { "DEVICE.CONFIG.NAME", parse_config_name },
-  { "DEVICE.CONFIG.LOCATION", parse_config_location },
-  { "GET.SENSORS", parse_config_stub },
-  { "UPDATE.SENSOR", parse_config_stub },
-  { "GET.STATE", parse_config_stub },
-  { "SET.STATE", parse_config_stub },
-  { NULL, NULL },
-};
-
-struct deviceConfiguration {
-  char name[64];
-  char wifimac[18];
-  char location[64];
-  uint32_t ip;
-};
 
 struct deviceConfiguration device {
   "un-named device", "8c:aa:b5:85:ef:94", 0
 };
 
-struct sensorControlData {
-  const char *sensorName;
-  char currentData[16];
-  uint32_t sensorFlags;
-  void (*readSensor)(char *buf);
-  void (*getState)(char *buf);
-  void (*setState)(char *buf);
-};
-
-struct sensorControlData sensors[] = {
-  { "comfort.temperature", "", 0, sensor_get_stub, NULL, NULL },
-  { "comfort.relativeHumidity", "", 0, sensor_get_stub, NULL, NULL },
-  { "comfort.lightLevel", "", 0, sensor_get_stub, NULL, NULL },
-  { "comfort.noiseLevel", "", 0, sensor_get_stub, NULL, NULL },
-  { "system.wifi.RSSI", "", 0, sensor_get_stub, NULL, NULL, },
-  { "system.uptime", "", 0, sensor_get_uptime, NULL, NULL, },
-  { "system.battery.voltage", "", 0, sensor_get_stub, NULL, NULL, },
-  { "system.memory.free", "", 0, sensor_get_free_heap, NULL, NULL },
-  { "system.memory.total", "", 0, sensor_get_total_heap, NULL, NULL },
-  { "comfort.fan1", "", 1, NULL, sensor_get_stub, sensor_get_stub },
-  { "comfort.fan2", "", 1, NULL, sensor_get_stub, sensor_get_stub },
-  { NULL, "", 0, NULL, NULL, NULL },
-};
-
-
-void sensor_get_stub(char *buf) {
-}
-
-void sensor_get_uptime(char *buf) {
-  sprintf(buf, "%lld", esp_timer_get_time());
-}
-
-void sensor_get_free_heap(char *buf) {
-  sprintf(buf, "%d", ESP.getFreeHeap());
-}
-
-void sensor_get_total_heap(char *buf) {
-  sprintf(buf, "%d", ESP.getHeapSize());
-}
 
 void setup() {
-
+  char msgbuf[256];
   // Set software serial baud to 115200;
   Serial.begin(115200);
+  #ifdef ESP32
   Wire.begin();
-  
+  #endif
+  #ifdef ESP8266
+  Wire.begin(2,0);
+  #endif
   // connecting to a WiFi network
+  
+  Serial.println("Initializing display..");
+  
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+  }
+
+  display.clearDisplay();
+
+  display.setTextSize(1);      // Normal 1:1 pixel scale
+  display.setTextColor(SSD1306_WHITE); // Draw white text
+  display.setCursor(0, 0);     // Start at top-left corner
+  display.cp437(true);         // Use full 256 char 'Code Page 437' font
+
+  sprintf((char *) &msgbuf, "Starting up!\nSSID: %s.", ssid);
+  drawTextLn((char *) &msgbuf, strlen(msgbuf));
+
   WiFi.begin(STASSID, STAPSK);
+  sprintf((char *) &msgbuf, ".");
   while (WiFi.status() != WL_CONNECTED) {
+      drawText((char *) &msgbuf, strlen(msgbuf));
       delay(500);
       Serial.println("Connecting to WiFi..");
   }
   Serial.println("Connected to the WiFi network");
-
-  Serial.println("Initializing display..");
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    for(;;); // Don't proceed, loop forever
-  }
-
+  sprintf((char *) &msgbuf, "\nConnected!");
+  drawText((char *) &msgbuf, strlen(msgbuf));
   
+  delay(2000);
+
+  display.clearDisplay();
+  display.setCursor(0, 0); 
+  sprintf((char *) &msgbuf, "MQTT: %s:%d", mqtt_broker, mqtt_port);
+  drawText((char *) &msgbuf, strlen(msgbuf));
+
   //connecting to a mqtt broker
   client.setServer(mqtt_broker, mqtt_port);
   client.setCallback(callback);
+
+  sprintf((char *) &msgbuf, ".");
   while (!client.connected()) {
+      drawText((char *) &msgbuf, strlen(msgbuf));    
       String client_id = "esp8266-client-";
       client_id += String(WiFi.macAddress());
       Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
@@ -154,28 +110,22 @@ void setup() {
           delay(2000);
       }
   }
+
+  delay(2000);
+  
   // publish and subscribe
   client.publish(topic, "hello, emqx!");
   client.subscribe("system/#");
   client.subscribe(topic);
-
-
-  display.clearDisplay();
-
-  display.setTextSize(1);      // Normal 1:1 pixel scale
-  display.setTextColor(SSD1306_WHITE); // Draw white text
-  display.setCursor(0, 0);     // Start at top-left corner
-  display.cp437(true);         // Use full 256 char 'Code Page 437' font
-  const char *msg = "Starting up!";
-  drawTextLn((char *) msg, strlen(msg));
 }
-
 
 
 void drawText(char *str, unsigned int length) {
 
   // Not all the characters will fit on the display. This is normal.
   // Library will draw what it can and the rest will be clipped.
+//  *(str + length) = '\0';
+  //display.write(str);
   for(unsigned int i=0; i<length; i++) {
     display.write(str[i]);
   }
@@ -189,80 +139,23 @@ void drawTextLn(char *str, unsigned int length) {
 
 
 void callback(char *topic, byte *payload, unsigned int length) {
-  Serial.print("Message arrived in topic: ");
-  Serial.println(topic);
-  Serial.print("Message:");
-  for (int i = 0; i < length; i++) {
-      Serial.print((char) payload[i]);
-  }
-
-  Serial.println();
-  Serial.println("-----------------------");
   display.clearDisplay();
   display.setCursor(0,0);
   drawTextLn(topic, strlen(topic));
   drawTextLn((char *) payload, length);
-  parseMessage(topic, (char *) payload, length);
+  parse_message(topic, (char *) payload, length);
 }
 
 
-
+uint64_t last_run_time = 0;
 
 void loop() {
   client.loop();
-  client.publish(topic, "SYSTEM.DEVICE.INIT name MAC IPaddress");
-  client.publish(topic, "UPDATE.SENSOR ccTemp 70.1");
-  client.publish(topic, "UPDATE.SENSOR ccRelativeHumidity 50.0");
-  delay(2000);
+  if (millis() - last_run_time >= 2000) {
+    Serial.print("Current: "); Serial.print(millis()); Serial.print(", last: "); Serial.print(last_run_time); Serial.print(", diff: "); Serial.println(millis() - last_run_time);
+    task_update_sensors(NULL);
+    last_run_time = millis();
+  }
   yield();
-}
-
-
-void parse_system_init_device(char *topic, char *argv[], unsigned int argc) {
-  
-  return;
-}
-
-void parse_config_stub(char *topic, char *argv[], unsigned int argc) {
-
-}
-
-void parse_config_name(char *topic, char *argv[], unsigned int argc) {
-  if (argc != 2) {
-    // incorrect number of params
-    return;
-  }
-  memcpy(device.name, argv[1], strlen(argv[1]));
-}
-
-void parse_config_location(char *topic, char *argv[], unsigned int argc) {
-  if (argc != 2) {
-    // incorrect number of params
-    return;
-  }
-  memcpy(device.location, argv[1], strlen(argv[1]));
-}
-
-void parseMessage(char *topic, char *omsg, unsigned int msgLength) {
-  char *argv[32];
-  unsigned int argc = 0;
-  char *msg, *msgstart;
-  msgstart = msg = (char *) malloc(msgLength + 1);
-  memcpy(msg, omsg, msgLength);
-  msg[msgLength] = '\0';
-  argv[0] = strtok(msg, " ");
-  while (msg != NULL && argc < 32) {
-    argv[++argc] = msg;
-    msg = strtok(NULL, " ");
-  }
-  free(msgstart);
-  Serial.print("Free heap: "); Serial.println(ESP.getFreeHeap());
-  Serial.println("Seeing if message has callback");
-  for (unsigned int i = 0; msgs[i].command != NULL; i++) {
-    if (strlen(msgs[i].command) == strlen(argv[0]) && !strcmp(msgs[i].command, argv[0])) {
-      Serial.print("Found message callback "); Serial.print(msgs[i].command); Serial.println(" .. executing callback");
-      msgs[i].callback(topic, argv, argc + 1);
-    }
-  }
   
 }
