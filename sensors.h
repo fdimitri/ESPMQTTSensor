@@ -3,7 +3,6 @@ void sensor_get_free_heap(char *);
 void sensor_get_total_heap(char *);
 void sensor_get_uptime(char *);
 void publish_sensor(struct sensorControlData *sensor);
-void task_update_sensors(void *pvParameters);
 
 struct sensorControlData sensors[] = {
   { false, "comfort.temperature", "", 0, sensor_get_stub, NULL, NULL },

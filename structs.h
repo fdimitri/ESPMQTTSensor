@@ -19,3 +19,9 @@ struct deviceConfiguration {
   char location[64];
   uint32_t ip;
 };
+
+struct taskRun {
+  void (*func)();
+  uint16_t run_every_millis;
+  unsigned long last_run_time;
+};
