@@ -1,10 +1,3 @@
-#define ESP8266
-#undef ESP32
-#ifndef STASSID
-#define STASSID "TellMyWiFiFoundSomeoneWhos24"
-#define STAPSK  "TwinTurbo2.7"
-#endif
-#define SSD1306_128_32
 #ifdef ESP32
 #include <WiFi.h>
 #endif
@@ -16,39 +9,21 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
-#define DISPLAY_WIDTH 128
-#define DISPLAY_HEIGHT 32
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 32 // OLED display height, in pixels
-#define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
+
+#include "structs.h"
+#include "config.h"
 #include "parse.h"
 #include "sensors.h"
-#include "structs.h"
-
-// WiFi
-const char *ssid = STASSID; // Enter your WiFi name
-const char *password = STAPSK;  // Enter WiFi password
-// MQTT Broker
-const char *mqtt_broker = "192.168.0.133";
-const char *topic = "device/unnamed";
-const char *mqtt_username = "emqx";
-const char *mqtt_password = "public";
-const int mqtt_port = 1883;
+#include "display.h"
+#include "mqtt.h"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-struct deviceConfiguration device {
-  "un-named device", "8c:aa:b5:85:ef:94", 0
-};
-
-
 void setup() {
   char msgbuf[256];
-  // Set software serial baud to 115200;
   Serial.begin(115200);
   #ifdef ESP32
   Wire.begin();
@@ -97,53 +72,13 @@ void setup() {
   client.setCallback(callback);
 
   sprintf((char *) &msgbuf, ".");
-  while (!client.connected()) {
-      drawText((char *) &msgbuf, strlen(msgbuf));    
-      String client_id = "esp8266-client-";
-      client_id += String(WiFi.macAddress());
-      Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
-      if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
-          Serial.println("Public emqx mqtt broker connected");
-      } else {
-          Serial.print("failed with state ");
-          Serial.print(client.state());
-          delay(2000);
-      }
-  }
-
+  mqtt_connect();
   delay(2000);
   
   // publish and subscribe
   client.publish(topic, "hello, emqx!");
   client.subscribe("system/#");
   client.subscribe(topic);
-}
-
-
-void drawText(char *str, unsigned int length) {
-
-  // Not all the characters will fit on the display. This is normal.
-  // Library will draw what it can and the rest will be clipped.
-//  *(str + length) = '\0';
-  //display.write(str);
-  for(unsigned int i=0; i<length; i++) {
-    display.write(str[i]);
-  }
-  display.display();
-}
-
-void drawTextLn(char *str, unsigned int length) {
-  drawText(str, length);
-  display.write("\n");
-}
-
-
-void callback(char *topic, byte *payload, unsigned int length) {
-  display.clearDisplay();
-  display.setCursor(0,0);
-  drawTextLn(topic, strlen(topic));
-  drawTextLn((char *) payload, length);
-  parse_message(topic, (char *) payload, length);
 }
 
 
