@@ -23,3 +23,17 @@
 
 
 struct deviceConfiguration device;
+
+struct deviceConfiguration device_default_config = {
+  VERSION, 
+  CONFIG_VERSION, 
+  "unnamed",          // name
+  "nolocation",       // location
+  "deviceconfig",     // wifi_ssid
+  "deviceconfig",     // wifi_psk
+  "mqtt.sensorconfig.local",  // mqtt_broker
+  "default",                  // mqtt_user
+  "default",                  // mqtt_pass
+  1833,                       // mqtt_port
+  0
+};

@@ -43,10 +43,8 @@ void setup() {
   eeprom_dump_config(eeprom_get_config());
 
   if (config_load_result < 0 || device.wifi_ssid[1] == 0xFF) {
-    Serial.println("Device not configured!");
-    while (device.wifi_ssid[1] == 0xFF) {
-      task_read_serial();
-    }
+    serial_printf("Device not configured or CRC32 invalid, loading default configuration");
+    memcpy((void *) &device, (void *) &device_default_config, sizeof(device));
   }
 
   Serial.println("Initializing display..");
@@ -54,7 +52,6 @@ void setup() {
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
   }
-
   oled_init();
 
   oled_printf("Starting up!\nWiFi SSD:\n%s", device.wifi_ssid);
@@ -68,8 +65,8 @@ void setup() {
       Serial.print(".");
       delay(500);
       task_read_serial();
-
   }
+  
   Serial.println("Connected to the WiFi network");
   oled_printf("\nConnected!");
   
