@@ -16,3 +16,7 @@ void task_update_sensors() {
     publish_sensor((struct sensorControlData *) &sensors[i]);
   }
 }
+
+void task_read_serial() {
+  serial_read();
+}

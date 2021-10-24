@@ -13,8 +13,8 @@ void mqtt_connect() {
       String client_id = "esp8266-client-";
       client_id += String(WiFi.macAddress());
       Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
-      if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
-          Serial.println("Public emqx mqtt broker connected");
+      if (client.connect(client_id.c_str(), device.mqtt_user, device.mqtt_pass)) {
+          serial_printf("Connected to MQTT server %s:%d with %s:%s\n", device.mqtt_broker, device.mqtt_port, device.mqtt_user, device.mqtt_pass);
       } else {
           Serial.print("failed with state ");
           Serial.print(client.state());

@@ -9,6 +9,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <EEPROM.h>
 
 #include "structs.h"
 #include "config.h"
@@ -17,6 +18,7 @@
 #include "display.h"
 #include "mqtt.h"
 #include "serial.h"
+#include "eeprom.h"
 #include "tasks.h"
 
 WiFiClient espClient;
@@ -33,7 +35,20 @@ void setup() {
   #ifdef ESP8266
   Wire.begin(2,0);
   #endif
- 
+
+  eeprom_init();
+  eeprom_load_config();
+  
+  if (device.config_version == 0xFFFF) {
+    Serial.println("Device not configured!");
+    for (;;) {
+      task_read_serial();
+    }
+  }
+  else {
+    eeprom_dump_config(eeprom_get_config());
+  }
+  
   Serial.println("Initializing display..");
   
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
@@ -42,16 +57,15 @@ void setup() {
 
   oled_init();
 
-  oled_printf("Starting up!\nWiFi SSD:\n%s", ssid);
+  oled_printf("Starting up!\nWiFi SSD:\n%s", device.wifi_ssid);
 
-  WiFi.begin(STASSID, STAPSK);
-  serial_printf("Connecting to %s with PSK %s", STASSID, STAPSK);
+  WiFi.begin(device.wifi_ssid, device.wifi_psk);
+  serial_printf("Connecting to %s with PSK %s", device.wifi_ssid, device.wifi_psk);
   
   while (WiFi.status() != WL_CONNECTED) {
       oled_print(".");
       Serial.print(".");
       delay(500);
-      
   }
   
   Serial.println("Connected to the WiFi network");
@@ -62,9 +76,9 @@ void setup() {
   display.clearDisplay();
   display.setCursor(0, 0); 
   
-  oled_printf("MQTT on port %d\n%s", mqtt_port, mqtt_broker);
+  oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
 
-  client.setServer(mqtt_broker, mqtt_port);
+  client.setServer(device.mqtt_broker, device.mqtt_port);
   client.setCallback(callback);
 
   mqtt_connect();
@@ -75,15 +89,14 @@ void setup() {
   client.subscribe(topic);
 }
 
-
-uint64_t last_run_time = 0;
-
-
-
 void loop() {
   client.loop(); // MQTT Client Loop in library
   for (unsigned int i = 0; tasks[i].func != NULL; i++) {
-    if (millis() - tasks[i].last_run_time >= tasks[i].run_every_millis) {
+    if (!tasks[i].run_every_millis || millis() - tasks[i].last_run_time >= tasks[i].run_every_millis) {
+      if (tasks[i].run_every_millis > 100) {
+        serial_printf("Running task %s\n", tasks[i].name);
+      }
+      tasks[i].last_run_time = millis();
       tasks[i].func();
     }
   }
