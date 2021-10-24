@@ -27,3 +27,10 @@ char *mqtt_build_topic(char *topic) {
   sprintf(topic, "location/%s/device/%s", device.location, device.name);
   return(topic);
 }
+
+void publish_sensor(struct sensorControlData *sensor) {
+  char buffer[128];
+  char topicbuf[128];
+  sprintf((char *) &buffer, "UPDATE.SENSOR %s %s", sensor->sensorName, sensor->currentData);
+  client.publish(mqtt_build_topic((char *) &topicbuf), (char *) &buffer);
+}

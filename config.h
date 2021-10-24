@@ -1,5 +1,5 @@
-#define ESP8266
-#undef ESP32
+#undef ESP8266
+#define ESP32
 #ifndef STASSID
 #define STASSID "TellMyWiFiFoundSomeoneWhos24"
 #define STAPSK  "TwinTurbo2.7"

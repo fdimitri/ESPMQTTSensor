@@ -1,9 +1,3 @@
-#ifdef ESP32
-#include <WiFi.h>
-#endif
-#ifdef ESP8266
-#include <ESP8266WiFi.h>
-#endif
 #include <PubSubClient.h>
 #include <SPI.h>
 #include <Wire.h>
@@ -21,6 +15,13 @@
 #include "serial.h"
 #include "eeprom.h"
 #include "tasks.h"
+
+#ifdef ESP32
+#include <WiFi.h>
+#endif
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#endif
 
 WiFiClient espClient;
 PubSubClient client(espClient);

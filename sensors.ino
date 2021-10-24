@@ -22,9 +22,7 @@ void sensor_get_total_heap(char *buf) {
   #endif
 }
 
-void publish_sensor(struct sensorControlData *sensor) {
-  char buffer[128];
-  char topicbuf[128];
-  sprintf((char *) &buffer, "UPDATE.SENSOR %s %s", sensor->sensorName, sensor->currentData);
-  client.publish(mqtt_build_topic((char *) &topicbuf), (char *) &buffer);
+void sensor_get_rssi(char *buf) {
+  long rssi = WiFi.RSSI();
+  sprintf(buf, "%ld", rssi);
 }
