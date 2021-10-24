@@ -6,8 +6,6 @@
 #endif
 #define SSD1306_128_32
 
-#define DISPLAY_WIDTH 128
-#define DISPLAY_HEIGHT 32
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 32 // OLED display height, in pixels
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
@@ -18,10 +16,10 @@
 #define EEPROM_SIZE 4096
 #define EEPROM_DEVICE_CONFIG_OFFSET 0x0
 
-#define CONFIG_VERSION 1
+#define CONFIG_VERSION 2
 #define VERSION "202110231938"
 
-// MQTT Broker
-const char *topic = "device/unnamed";
+#define ECONFIG_INVALID_CRC 1
+
 
 struct deviceConfiguration device;

@@ -21,7 +21,7 @@ struct msgCallbackList msgs[] = {
   { "DEVICE.CONFIG.DUMP", parse_device_config_dump },
   { "DEVICE.CONFIG.RDUMP", parse_device_config_dump },
   { "DEVICE.CONFIG.CLEAR", parse_device_config_clear },
-  { "GET.SENSORS", parse_config_stub },
+  { "GET.SENSOR", parse_config_stub },
   { "UPDATE.SENSOR", parse_config_stub },
   { "GET.STATE", parse_config_stub },
   { "SET.STATE", parse_config_stub },

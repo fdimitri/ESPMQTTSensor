@@ -24,6 +24,7 @@ void sensor_get_total_heap(char *buf) {
 
 void publish_sensor(struct sensorControlData *sensor) {
   char buffer[128];
+  char topicbuf[128];
   sprintf((char *) &buffer, "UPDATE.SENSOR %s %s", sensor->sensorName, sensor->currentData);
-  client.publish(topic, (char *) &buffer);
+  client.publish(mqtt_build_topic((char *) &topicbuf), (char *) &buffer);
 }
