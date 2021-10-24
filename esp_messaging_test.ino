@@ -41,7 +41,7 @@ void setup() {
   
   if (device.config_version == 0xFFFF) {
     Serial.println("Device not configured!");
-    for (;;) {
+    while (device.wifi_ssid[0] == 0xFFF) {
       task_read_serial();
     }
   }
@@ -84,7 +84,6 @@ void setup() {
   mqtt_connect();
   delay(2000);
   
-  client.publish(topic, "hello, emqx!");
   client.subscribe("system/#");
   client.subscribe(topic);
 }

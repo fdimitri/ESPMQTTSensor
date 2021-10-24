@@ -20,6 +20,11 @@ void parse_device_rconfig_dump(char *topic, char *argv[], unsigned int argc) {
   eeprom_dump_config(&device);
 }
 
+void parse_device_config_clear(char *topic, char *argv[], unsigned int argc) {
+  memset((void *) &device, 255, sizeof(device));
+  eeprom_dump_config(&device);
+}
+
 void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc) {
   // DEVICE.CONFIG.WIFI
   if (argc != 3) {
