@@ -12,12 +12,23 @@ void parse_device_reboot(char *topic, char *argv[], unsigned int argc) {
   ESP.restart();
 }
 
-void parse_device_config_dump(char *topic, char *argv[], unsigned int argc) {
+void parse_debug_config_dump(char *topic, char *argv[], unsigned int argc) {
   eeprom_dump_config(eeprom_get_config());
 }
 
-void parse_device_rconfig_dump(char *topic, char *argv[], unsigned int argc) {
+void parse_debug_rconfig_dump(char *topic, char *argv[], unsigned int argc) {
   eeprom_dump_config(&device);
+}
+
+void parse_debug_get_sensor(char *topic, char *argv[], unsigned int argc) {
+  for (unsigned int i = 0; sensors[i].sensorName != NULL; i++) {
+    if (!strcmp(sensors[i].sensorName, argv[1])) {
+      serial_printf("Sensor %s is currently %s\n", argv[1], sensors[i].currentData);
+      return;
+    }
+  }
+  serial_printf("Sensor %s was not found!\n", argv[1]);
+  return;
 }
 
 void parse_device_config_clear(char *topic, char *argv[], unsigned int argc) {
