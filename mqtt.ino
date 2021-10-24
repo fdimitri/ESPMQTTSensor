@@ -22,3 +22,8 @@ void mqtt_connect() {
       }
   }
 }
+
+char *mqtt_build_topic(char *topic) {
+  sprintf(topic, "location/%s/device/%s", device.location, device.name);
+  return(topic);
+}

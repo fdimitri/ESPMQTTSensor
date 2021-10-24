@@ -4,25 +4,42 @@ void eeprom_init() {
 }
 
 void eeprom_save_config() {
-//  byte *b = (byte *) &device;
-//  for (unsigned int i = 0; i < sizeof(device); i++) {
-//    EEPROM.update(i, *(b++));
-//  }
+  uint32_t newcrc;
   strcpy((char *) &device.version, VERSION);
   device.config_version = CONFIG_VERSION;
+  newcrc = eeprom_get_crc32(&device);
+  device.crc32 = newcrc;
+  
   EEPROM.put(EEPROM_DEVICE_CONFIG_OFFSET, device);
+  
   EEPROM.commit();
   serial_printf("Saved configuration\n");
 }
 
-void eeprom_load_config() {
+int eeprom_load_config() {
   EEPROM.get(EEPROM_DEVICE_CONFIG_OFFSET, device);
+  uint32_t crc = eeprom_get_crc32(&device);
+  if (crc != device.crc32) {
+    serial_printf("Error: CRC32 from device %d does not match calculated crc %d\n", device.crc32, crc);
+    return(-ECONFIG_INVALID_CRC);
+  }
+  else {
+    serial_printf("CRC32 matches from EEPROM %d %d\n", device.crc32, crc);
+  }
+  return(0);
 }
 
 deviceConfiguration *eeprom_get_config() {
   static deviceConfiguration d;
   char buf[EEPROM_SIZE];
   EEPROM.get(EEPROM_DEVICE_CONFIG_OFFSET, d);
+  uint32_t crc = eeprom_get_crc32(&d);
+  if (crc != d.crc32) {
+    serial_printf("Error: CRC32 from device %d does not match calculated crc %d\n", d.crc32, crc);
+  }
+  else {
+    serial_printf("CRC32 matches from EEPROM %d %d\n", d.crc32, crc);
+  }
   return(&d);
 }
 
@@ -46,4 +63,12 @@ void eeprom_dump_config(deviceConfiguration *d) {
   serial_printf("SSID: %s, PSK: %s\n", d->wifi_ssid, d->wifi_psk);
   serial_printf("MQTT Server: %s:%d\n", d->mqtt_broker, d->mqtt_port);
   serial_printf("MQTT User/pass: %s %s\n", d->mqtt_user, d->mqtt_pass);
+  serial_printf("CRC32: %d\n", d->crc32);
+}
+
+uint32_t eeprom_get_crc32(deviceConfiguration *d) {
+  uint32_t crc;
+  serial_printf("Calculate on %p, %d - %d (%d)\n", &device, sizeof(deviceConfiguration), sizeof(device.crc32), sizeof(deviceConfiguration) - sizeof(device.crc32));
+  crc = CRC32::calculate((uint8_t *) &device, sizeof(deviceConfiguration) - sizeof(device.crc32));
+  return(crc);
 }

@@ -28,7 +28,7 @@ struct deviceConfiguration {
   char mqtt_pass[32];
   uint16_t mqtt_port;
   
-  uint32_t ip;
+  uint32_t crc32;
 };
 
 struct taskRun {
