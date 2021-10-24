@@ -14,8 +14,26 @@ struct msgCallbackList {
 };
 
 struct deviceConfiguration {
+  char version[16];
+  uint16_t config_version;
+  
   char name[64];
-  char wifimac[18];
   char location[64];
+  
+  char wifi_ssid[32];
+  char wifi_psk[32];
+  
+  char mqtt_broker[32];
+  char mqtt_user[32];
+  char mqtt_pass[32];
+  uint16_t mqtt_port;
+  
   uint32_t ip;
+};
+
+struct taskRun {
+  const char *name;
+  void (*func)();
+  uint16_t run_every_millis;
+  unsigned long last_run_time;
 };

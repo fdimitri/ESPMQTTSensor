@@ -13,17 +13,15 @@
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
-// WiFi
-const char *ssid = STASSID; // Enter your WiFi name
-const char *password = STAPSK;  // Enter WiFi password
+#define BUFFER_SIZE 256
+
+#define EEPROM_SIZE 4096
+#define EEPROM_DEVICE_CONFIG_OFFSET 0x0
+
+#define CONFIG_VERSION 1
+#define VERSION "202110231938"
 
 // MQTT Broker
-const char *mqtt_broker = "192.168.0.133";
 const char *topic = "device/unnamed";
-const char *mqtt_username = "emqx";
-const char *mqtt_password = "public";
-const int mqtt_port = 1883;
 
-struct deviceConfiguration device {
-  "un-named device", "8c:aa:b5:85:ef:94", 0
-};
+struct deviceConfiguration device;

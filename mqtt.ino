@@ -1,20 +1,20 @@
 void callback(char *topic, byte *payload, unsigned int length) {
   display.clearDisplay();
   display.setCursor(0,0);
-  drawTextLn(topic, strlen(topic));
-  drawTextLn((char *) payload, length);
+  oled_msgLn(topic, strlen(topic));
+  oled_msgLn((char *) payload, length);
   parse_message(topic, (char *) payload, length);
 }
 
 void mqtt_connect() {
   char msgbuf[256];
   while (!client.connected()) {
-      drawText((char *) &msgbuf, strlen(msgbuf));    
+      oled_msg((char *) &msgbuf, strlen(msgbuf));    
       String client_id = "esp8266-client-";
       client_id += String(WiFi.macAddress());
       Serial.printf("The client %s connects to the public mqtt broker\n", client_id.c_str());
-      if (client.connect(client_id.c_str(), mqtt_username, mqtt_password)) {
-          Serial.println("Public emqx mqtt broker connected");
+      if (client.connect(client_id.c_str(), device.mqtt_user, device.mqtt_pass)) {
+          serial_printf("Connected to MQTT server %s:%d with %s:%s\n", device.mqtt_broker, device.mqtt_port, device.mqtt_user, device.mqtt_pass);
       } else {
           Serial.print("failed with state ");
           Serial.print(client.state());

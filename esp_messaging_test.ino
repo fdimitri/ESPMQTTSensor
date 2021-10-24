@@ -9,6 +9,7 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <EEPROM.h>
 
 #include "structs.h"
 #include "config.h"
@@ -16,6 +17,9 @@
 #include "sensors.h"
 #include "display.h"
 #include "mqtt.h"
+#include "serial.h"
+#include "eeprom.h"
+#include "tasks.h"
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -31,7 +35,19 @@ void setup() {
   #ifdef ESP8266
   Wire.begin(2,0);
   #endif
-  // connecting to a WiFi network
+
+  eeprom_init();
+  eeprom_load_config();
+  
+  if (device.config_version == 0xFFFF) {
+    Serial.println("Device not configured!");
+    while (device.wifi_ssid[0] == 0xFFF) {
+      task_read_serial();
+    }
+  }
+  else {
+    eeprom_dump_config(eeprom_get_config());
+  }
   
   Serial.println("Initializing display..");
   
@@ -39,58 +55,49 @@ void setup() {
     Serial.println(F("SSD1306 allocation failed"));
   }
 
-  display.clearDisplay();
+  oled_init();
 
-  display.setTextSize(1);      // Normal 1:1 pixel scale
-  display.setTextColor(SSD1306_WHITE); // Draw white text
-  display.setCursor(0, 0);     // Start at top-left corner
-  display.cp437(true);         // Use full 256 char 'Code Page 437' font
+  oled_printf("Starting up!\nWiFi SSD:\n%s", device.wifi_ssid);
 
-  sprintf((char *) &msgbuf, "Starting up!\nSSID: %s.", ssid);
-  drawTextLn((char *) &msgbuf, strlen(msgbuf));
-
-  WiFi.begin(STASSID, STAPSK);
-  sprintf((char *) &msgbuf, ".");
+  WiFi.begin(device.wifi_ssid, device.wifi_psk);
+  serial_printf("Connecting to %s with PSK %s", device.wifi_ssid, device.wifi_psk);
+  
   while (WiFi.status() != WL_CONNECTED) {
-      drawText((char *) &msgbuf, strlen(msgbuf));
+      oled_print(".");
+      Serial.print(".");
       delay(500);
-      Serial.println("Connecting to WiFi..");
   }
+  
   Serial.println("Connected to the WiFi network");
-  sprintf((char *) &msgbuf, "\nConnected!");
-  drawText((char *) &msgbuf, strlen(msgbuf));
+  oled_printf("\nConnected!");
   
   delay(2000);
 
   display.clearDisplay();
   display.setCursor(0, 0); 
-  sprintf((char *) &msgbuf, "MQTT: %s:%d", mqtt_broker, mqtt_port);
-  drawText((char *) &msgbuf, strlen(msgbuf));
+  
+  oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
 
-  //connecting to a mqtt broker
-  client.setServer(mqtt_broker, mqtt_port);
+  client.setServer(device.mqtt_broker, device.mqtt_port);
   client.setCallback(callback);
 
-  sprintf((char *) &msgbuf, ".");
   mqtt_connect();
   delay(2000);
   
-  // publish and subscribe
-  client.publish(topic, "hello, emqx!");
   client.subscribe("system/#");
   client.subscribe(topic);
 }
 
-
-uint64_t last_run_time = 0;
-
 void loop() {
-  client.loop();
-  if (millis() - last_run_time >= 2000) {
-    Serial.print("Current: "); Serial.print(millis()); Serial.print(", last: "); Serial.print(last_run_time); Serial.print(", diff: "); Serial.println(millis() - last_run_time);
-    task_update_sensors(NULL);
-    last_run_time = millis();
+  client.loop(); // MQTT Client Loop in library
+  for (unsigned int i = 0; tasks[i].func != NULL; i++) {
+    if (!tasks[i].run_every_millis || millis() - tasks[i].last_run_time >= tasks[i].run_every_millis) {
+      if (tasks[i].run_every_millis > 100) {
+        serial_printf("Running task %s\n", tasks[i].name);
+      }
+      tasks[i].last_run_time = millis();
+      tasks[i].func();
+    }
   }
   yield();
-  
 }
