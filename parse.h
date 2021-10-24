@@ -8,6 +8,7 @@ void parse_device_rconfig_dump(char *topic, char *argv[], unsigned int argc);
 void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc);
 void parse_device_config_mqtt(char *topic, char *argv[], unsigned int argc);
 void parse_device_config_clear(char *topic, char *argv[], unsigned int argc);
+void parse_device_mqtt_subscribe(char *topic, char *argv[], unsigned int argc);
 
 struct msgCallbackList msgs[] = {
   { "SYSTEM.INIT.DEVICE", parse_system_init_device },
@@ -21,6 +22,7 @@ struct msgCallbackList msgs[] = {
   { "DEVICE.CONFIG.DUMP", parse_device_config_dump },
   { "DEVICE.CONFIG.RDUMP", parse_device_config_dump },
   { "DEVICE.CONFIG.CLEAR", parse_device_config_clear },
+  { "DEVICE.MQTT.SUBSCRIBE", parse_device_mqtt_subscribe },
   { "GET.SENSOR", parse_config_stub },
   { "UPDATE.SENSOR", parse_config_stub },
   { "GET.STATE", parse_config_stub },

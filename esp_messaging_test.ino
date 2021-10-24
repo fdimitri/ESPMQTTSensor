@@ -60,13 +60,15 @@ void setup() {
 
   WiFi.begin(device.wifi_ssid, device.wifi_psk);
   serial_printf("Connecting to %s with PSK %s", device.wifi_ssid, device.wifi_psk);
-  
-  while (WiFi.status() != WL_CONNECTED) {
+
+  unsigned int i = 0;
+  while (WiFi.status() != WL_CONNECTED && i++ < 10) {
       oled_print(".");
       Serial.print(".");
       delay(500);
+      task_read_serial();
+
   }
-  
   Serial.println("Connected to the WiFi network");
   oled_printf("\nConnected!");
   
