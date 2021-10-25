@@ -6,6 +6,8 @@
 #include <EEPROM.h>
 #include <CRC32.h>
 
+
+#include "errors.h"
 #include "structs.h"
 #include "config.h"
 #include "parse.h"
@@ -15,6 +17,12 @@
 #include "serial.h"
 #include "eeprom.h"
 #include "tasks.h"
+#include "sensor_htu31.h"
+
+#ifdef CONFIG_HARDWARE_HTU31
+#include <Adafruit_HTU31D.h>
+Adafruit_HTU31D htu = Adafruit_HTU31D();
+#endif
 
 #ifdef ESP32
 #include <WiFi.h>
@@ -43,10 +51,9 @@ void setup() {
   eeprom_dump_config(eeprom_get_config());
 
   if (config_load_result < 0 || device.wifi_ssid[1] == 0xFF) {
-    Serial.println("Device not configured!");
-    while (device.wifi_ssid[1] == 0xFF) {
-      task_read_serial();
-    }
+    serial_printf("Device not configured or CRC32 invalid, loading default configuration");
+    memcpy((void *) &device, (void *) &device_default_config, sizeof(device));
+    eeprom_save_config();
   }
 
   Serial.println("Initializing display..");
@@ -54,7 +61,6 @@ void setup() {
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
   }
-
   oled_init();
 
   oled_printf("Starting up!\nWiFi SSD:\n%s", device.wifi_ssid);
@@ -63,13 +69,13 @@ void setup() {
   serial_printf("Connecting to %s with PSK %s", device.wifi_ssid, device.wifi_psk);
 
   unsigned int i = 0;
-  while (WiFi.status() != WL_CONNECTED && i++ < 10) {
+  while (WiFi.status() != WL_CONNECTED && i++ < 100) {
       oled_print(".");
       Serial.print(".");
       delay(500);
       task_read_serial();
-
   }
+  
   Serial.println("Connected to the WiFi network");
   oled_printf("\nConnected!");
   
@@ -78,10 +84,11 @@ void setup() {
   display.clearDisplay();
   display.setCursor(0, 0); 
   
-  oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
+ 
+  sensors_init();
 
-  client.setServer(device.mqtt_broker, device.mqtt_port);
-  client.setCallback(callback);
+  serial_printf("Connecting to MQTT..\n");
+  oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
 
   mqtt_connect();
   delay(2000);

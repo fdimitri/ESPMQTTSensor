@@ -1,8 +1,7 @@
 void task_update_sensors() {
   char buf[256];
-  for (unsigned int i = 0; sensors[i].sensorName != NULL; i++) {
+  for (unsigned int i = 0; sensors[i].sensorFlags != 0x8000; i++) {
 //    sprintf((char *) &buf, "Going through sensor %d - %s, flags %d - %s", i, sensors[i].sensorName, sensors[i].sensorFlags, sensors[i].currentData);
-//    Serial.println(buf);
     if (!sensors[i].isEnabled) {
       continue;
     }

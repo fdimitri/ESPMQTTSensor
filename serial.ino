@@ -5,9 +5,10 @@ void serial_read(void) {
     switch (c) {
       case '\r':
       case '\n':
-        serial_printf("Received newline, parsing serial command buffer..%s\n", serial_command_buffer);
-        parse_message("serial", (char *) &serial_command_buffer, strlen(serial_command_buffer));
-        serial_command_buffer_ptr = 0;
+        if (strlen(serial_command_buffer)) {
+          parse_message("serial", (char *) &serial_command_buffer, strlen(serial_command_buffer));
+          serial_command_buffer_ptr = 0;
+        }
         memset((void *) &serial_command_buffer, 0, sizeof(serial_command_buffer));
         break;
       default:
@@ -24,5 +25,6 @@ void serial_printf(const char *fmt, ...) {
   vsnprintf(buf, BUFFER_SIZE, fmt, args);
   va_end(args);
   Serial.print(buf);
+  Serial.flush();
   return;
 }

@@ -1,6 +1,7 @@
 struct sensorControlData {
   bool isEnabled;
-  const char *sensorName;
+  char sensorName[64];
+  char sensorHardware[16];
   char currentData[16];
   uint32_t sensorFlags;
   void (*readSensor)(char *buf);
