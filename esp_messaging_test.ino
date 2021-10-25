@@ -18,11 +18,7 @@
 #include "eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
-
-#ifdef CONFIG_HARDWARE_HTU31
-#include <Adafruit_HTU31D.h>
-Adafruit_HTU31D htu = Adafruit_HTU31D();
-#endif
+#include "sensor_bme280.h"
 
 #ifdef ESP32
 #include <WiFi.h>
