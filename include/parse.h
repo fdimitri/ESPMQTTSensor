@@ -1,5 +1,5 @@
 extern void parse_system_init_device(char *topic, char *argv[], unsigned int argc);
-extern void parse_config_stub((char *topic, char *argv[], unsigned int argc);
+extern void parse_config_stub(char *topic, char *argv[], unsigned int argc);
 extern void parse_device_config_name(char *topic, char *argv[], unsigned int argc);
 extern void parse_device_config_location(char *topic, char *argv[], unsigned int argc);
 extern void parse_device_reboot(char *topic, char *argv[], unsigned int argc);

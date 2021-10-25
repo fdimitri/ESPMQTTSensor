@@ -65,8 +65,11 @@ void eeprom_save_config() {
   device.crc32 = newcrc;
   
   EEPROM.put(EEPROM_DEVICE_CONFIG_OFFSET, device);
-  
-  EEPROM.commit();
+
+  if (!EEPROM.commit()) {
+    serial_printf("EEPROM.commit() failed!\n");
+    return;
+  }
   serial_printf("Saved configuration\n");
 }
 
@@ -85,7 +88,6 @@ int eeprom_load_config() {
 
 deviceConfiguration *eeprom_get_config() {
   static deviceConfiguration d;
-  char buf[EEPROM_SIZE];
   EEPROM.get(EEPROM_DEVICE_CONFIG_OFFSET, d);
   uint32_t crc = eeprom_get_crc32(&d);
   if (crc != d.crc32) {
@@ -108,7 +110,11 @@ void eeprom_update_config() {
     }
     ++o;++n;
   }
-  EEPROM.commit();
+  if (!EEPROM.commit()) {
+    serial_printf("EEPROM.commit() failed!\n");
+    return;
+  }
+
 }
 
 void eeprom_dump_config(struct deviceConfiguration *d) {

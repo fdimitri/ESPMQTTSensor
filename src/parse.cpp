@@ -177,7 +177,7 @@ void parse_message(char *topic, char *omsg, unsigned int msgLength) {
     msg = strtok(NULL, " ");
   }
   
-  for (unsigned int i = 0; strlen(msgs[i].command); i++) {
+  for (unsigned int i = 0; msgs[i].command != NULL; i++) {
     if (strlen(msgs[i].command) == strlen(argv[0]) && !strcmp(msgs[i].command, argv[0])) {
       msgs[i].callback(topic, argv, argc + 1);
       free(msgstart);

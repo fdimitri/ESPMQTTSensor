@@ -80,13 +80,13 @@ int bme280_register_functions() {
   sensor_definition_register_functions(cptr);
 
   strcpy(cptr->sensorName, "comfort.barometricPressure\0");
-  strcpy(cptr->sensorHardware, temp_hardware_name);
+  strcpy(cptr->sensorHardware, altitude_hardware_name);
   cptr->readSensor = bme280_read_pressure;
   cptr->getState = cptr->setState = NULL;
   sensor_definition_register_functions(cptr);
 
   strcpy(cptr->sensorName, "comfort.approxAltitude\0");
-  strcpy(cptr->sensorHardware, temp_hardware_name);
+  strcpy(cptr->sensorHardware, pressure_hardware_name);
   cptr->readSensor = bme280_read_altitude;
   cptr->getState = cptr->setState = NULL;
   sensor_definition_register_functions(cptr);

@@ -64,7 +64,7 @@ void sensor_get_uptime(char *buf) {
   sprintf(buf, "%lld", esp_timer_get_time());
   #endif
   #ifdef ESP8266
-  sprintf(buf, "%lld", system_get_time());
+  sprintf(buf, "%ud", system_get_time());
   #endif
 }
 
@@ -136,7 +136,6 @@ int sensors_dump_scd_entry(struct sensorControlData *d) {
 }
 
 int sensors_dump_scd_list() {
-  char buf[1024];
   for (unsigned int i = 0; sensors[i].sensorFlags != 0x8000; i++) {
     serial_printf("Sensor infor for %d:\n", i);
     sensors_dump_scd_entry(&sensors[i]);

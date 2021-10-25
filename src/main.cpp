@@ -35,7 +35,6 @@ PubSubClient client(espClient);
 
 
 void setup() {
-  char msgbuf[256];
   Serial.begin(115200);
   #ifdef ESP32
   Wire.begin();
@@ -48,7 +47,7 @@ void setup() {
   int config_load_result = eeprom_load_config();
   eeprom_dump_config(eeprom_get_config());
 
-  if (config_load_result < 0 || device.wifi_ssid[1] == 0xFF) {
+  if (config_load_result < 0 || device.wifi_ssid[1] == 0xFF || device.wifi_ssid[0] == 0x00) {
     serial_printf("Device not configured or CRC32 invalid, loading default configuration");
     eeprom_save_default_config();
 
