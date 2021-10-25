@@ -30,32 +30,34 @@ The serial port also parses messages as if they came in on MQTT. All serial mess
 
 JSON was decided to be too expensive for an ESP8266.
 
-Parameters in <> are mandatory, parameters in [] are optional.
+Parameters in [] are mandatory, parameters in [[]] are optional.
+
 ### Topic Structure
-Devices shall publish sensors to device/<LOCATION>/devices/<DEVICENAME>
-Devices shall subscribe to topic system/control and system/control/<DEVICENAME>
+Devices shall publish sensors to home/[LOCATION]/devices/[DEVICENAME]
+Devices shall subscribe to topic system/[DEVICENAME] and home/[LOCATION]/system
 
 ### Server to Device
-DEVICE.CONFIG.WIFI <wifiSSID> <wifiPassword> [deviceMAC]
+DEVICE.CONFIG.WIFI [[wifiSSID]] [[wifiPassword]] [deviceMAC]
 Configures WiFi parameters
 
-DEVICE.CONFIG.MQTT <Broker> <BrokerPort> <Username> <Password> [deviceMAC]
+DEVICE.CONFIG.MQTT [[Broker]] [[BrokerPort]] [[Username]] [[Password]] [deviceMAC]
 Configures MQTT parameters
 
-DEVICE.CONFIG.NAME <newDeviceName>
+DEVICE.CONFIG.NAME [[newDeviceName]]
 Sets device’s friendly name
 
-DEVICE.CONFIG.LOCATION <deviceLocation>
+DEVICE.CONFIG.LOCATION [[deviceLocation]]
 Sets device’s location
 
-DEVICE.CONFIG.SENSOR.PUBLISHINTERVAL <milliSeconds>
-DEVICE.CONFIG.SENSOR.UPDATEINTERVAL <milliSeconds>
+DEVICE.CONFIG.SENSOR.PUBLISHINTERVAL [[milliSeconds]]
 
-GET.SENSORS <deviceName> [sensorName]
+DEVICE.CONFIG.SENSOR.UPDATEINTERVAL [[milliSeconds]]
 
-SET.STATE <deviceName> <controlName>
+GET.SENSORS [[deviceName]] [sensorName]
 
-GET.STATE <deviceName> <controlName> <state>
+SET.STATE [[deviceName]] [[controlName]]
+
+GET.STATE [[deviceName]] [[controlName]] [[state]]
 
 ### Debug Information - Serial Only
 Any of these commands will dump information to the serial console, and NOT over MQTT.
@@ -65,9 +67,10 @@ Dumps configuration
 
 DEBUG.GET.SENSOR
 Prints the current value of the sensor
+
 ### Device to Server
 
-UPDATE.SENSOR <deviceName> <sensorName> <sensorValue>
+UPDATE.SENSOR [[deviceName]] [[sensorName]] [[sensorValue]]
 
-SYSTEM.INIT.DEVICE <deviceName> <deviceMAC> <deviceIP>
+SYSTEM.INIT.DEVICE [[deviceName]] [[deviceMAC]] [[deviceIP]]
 Registers device to server
