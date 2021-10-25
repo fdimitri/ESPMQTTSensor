@@ -43,6 +43,8 @@ void setup() {
   Wire.begin(2,0);
   #endif
 
+  Wire.setClock(CONFIG_IIC_SPEED);
+
   eeprom_init();
   int config_load_result = eeprom_load_config();
   eeprom_dump_config(eeprom_get_config());

@@ -91,7 +91,7 @@ int sensor_definition_register_functions(struct sensorControlData *newscd) {
     serial_printf("sensor_definition.. not found %s\n", newscd->sensorName);
     return(-ESENSOR_NOT_FOUND_IN_SCD);  
   }
-  serial_printf("Found scd: %p", scd);
+  serial_printf("Found scd: %p\n", scd);
   sensors_dump_scd_entry(scd);
 
   scd->isEnabled = true;

@@ -26,13 +26,17 @@
 void serial_read(void);
 void serial_printf(const char *fmt, ...);
 
-char serial_command_buffer[256];
+char serial_command_buffer[CONFIG_SERIAL_COMMANDBUFFER_SIZE];
 uint8_t serial_command_buffer_ptr = 0;
 
 void serial_read(void) {
   while (Serial.available() > 0) {
     uint8_t c = Serial.read();
     Serial.print((char) c);
+    if (serial_command_buffer_ptr > CONFIG_SERIAL_COMMANDBUFFER_SIZE -1) {
+      serial_printf("Serial input exceeded length!\n");
+      serial_command_buffer_ptr = 0;
+    }
     switch (c) {
       case '\r':
       case '\n':
