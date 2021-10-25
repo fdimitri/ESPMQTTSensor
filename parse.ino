@@ -21,13 +21,14 @@ void parse_debug_rconfig_dump(char *topic, char *argv[], unsigned int argc) {
 }
 
 void parse_debug_get_sensor(char *topic, char *argv[], unsigned int argc) {
-  for (unsigned int i = 0; sensors[i].sensorName != NULL; i++) {
-    if (!strcmp(sensors[i].sensorName, argv[1])) {
-      serial_printf("Sensor %s is currently %s\n", argv[1], sensors[i].currentData);
-      return;
-    }
+  struct sensorControlData *scd;
+  scd = sensor_get_by_name(argv[1]);
+  if (!scd) {
+    serial_printf("Sensor %s was not found!\n", argv[1]);  
   }
-  serial_printf("Sensor %s was not found!\n", argv[1]);
+  else {
+    serial_printf("Sensor %s is currently %s\n", argv[1], scd->currentData);
+  } 
   return;
 }
 
@@ -117,7 +118,7 @@ void parse_message(char *topic, char *omsg, unsigned int msgLength) {
     msg = strtok(NULL, " ");
   }
   
-  for (unsigned int i = 0; msgs[i].command != NULL; i++) {
+  for (unsigned int i = 0; strlen(msgs[i].command); i++) {
     if (strlen(msgs[i].command) == strlen(argv[0]) && !strcmp(msgs[i].command, argv[0])) {
       msgs[i].callback(topic, argv, argc + 1);
       free(msgstart);

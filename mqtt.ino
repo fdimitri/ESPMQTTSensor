@@ -8,7 +8,13 @@ void callback(char *topic, byte *payload, unsigned int length) {
 
 void mqtt_connect() {
   char msgbuf[256];
-  while (!client.connected()) {
+  uint8_t retrycount = 16;
+
+  client.setServer(device.mqtt_broker, device.mqtt_port);
+  client.setCallback(callback);
+
+  while (!client.connected() && retrycount--) {
+      task_read_serial();
       oled_msg((char *) &msgbuf, strlen(msgbuf));    
       String client_id = "esp8266-client-";
       client_id += String(WiFi.macAddress());

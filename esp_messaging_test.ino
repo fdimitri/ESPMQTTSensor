@@ -6,6 +6,8 @@
 #include <EEPROM.h>
 #include <CRC32.h>
 
+
+#include "errors.h"
 #include "structs.h"
 #include "config.h"
 #include "parse.h"
@@ -15,6 +17,12 @@
 #include "serial.h"
 #include "eeprom.h"
 #include "tasks.h"
+#include "sensor_htu31.h"
+
+#ifdef CONFIG_HARDWARE_HTU31
+#include <Adafruit_HTU31D.h>
+Adafruit_HTU31D htu = Adafruit_HTU31D();
+#endif
 
 #ifdef ESP32
 #include <WiFi.h>
@@ -45,6 +53,7 @@ void setup() {
   if (config_load_result < 0 || device.wifi_ssid[1] == 0xFF) {
     serial_printf("Device not configured or CRC32 invalid, loading default configuration");
     memcpy((void *) &device, (void *) &device_default_config, sizeof(device));
+    eeprom_save_config();
   }
 
   Serial.println("Initializing display..");
@@ -60,7 +69,7 @@ void setup() {
   serial_printf("Connecting to %s with PSK %s", device.wifi_ssid, device.wifi_psk);
 
   unsigned int i = 0;
-  while (WiFi.status() != WL_CONNECTED && i++ < 10) {
+  while (WiFi.status() != WL_CONNECTED && i++ < 100) {
       oled_print(".");
       Serial.print(".");
       delay(500);
@@ -75,10 +84,11 @@ void setup() {
   display.clearDisplay();
   display.setCursor(0, 0); 
   
-  oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
+ 
+  sensors_init();
 
-  client.setServer(device.mqtt_broker, device.mqtt_port);
-  client.setCallback(callback);
+  serial_printf("Connecting to MQTT..\n");
+  oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
 
   mqtt_connect();
   delay(2000);
