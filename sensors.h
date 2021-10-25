@@ -12,6 +12,8 @@ struct sensorControlData *sensor_get_by_name(char *name);
 struct sensorControlData sensors[] = {
   { false, "comfort.temperature", "", "", 0, sensor_get_stub, NULL, NULL },
   { false, "comfort.relativeHumidity", "", "", 0, sensor_get_stub, NULL, NULL },
+  { false, "comfort.barometricPressure", "", "", 0, sensor_get_stub, NULL, NULL },
+  { false, "comfort.approxAltitude", "", "", 0, sensor_get_stub, NULL, NULL },
   { false, "comfort.lightLevel", "", "", 0, sensor_get_stub, NULL, NULL },
   { false, "comfort.noiseLevel", "", "", 0, sensor_get_stub, NULL, NULL },
   { true, "system.wifi.RSSI", "system", "", 0, sensor_get_rssi, NULL, NULL, },

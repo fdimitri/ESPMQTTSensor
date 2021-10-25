@@ -62,6 +62,10 @@ int sensors_init() {
   #ifdef CONFIG_HARDWARE_HTU31
   htu31_init();
   #endif
+
+  #ifdef CONFIG_HARDWARE_BME280
+  bme280_init();
+  #endif
   return(0);
 }
 

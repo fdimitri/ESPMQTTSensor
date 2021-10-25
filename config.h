@@ -25,7 +25,18 @@
 
 
 #define CONFIG_HARDWARE_HTU31
+#define CONFIG_HARDWARE_BME280
 
+#ifdef CONFIG_HARDWARE_HTU31
+#include <Adafruit_HTU31D.h>
+Adafruit_HTU31D htu = Adafruit_HTU31D();
+#endif
+
+#ifdef CONFIG_HARDWARE_BME280
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+Adafruit_BME280 bme; // I2C
+#endif
 
 struct deviceConfiguration device;
 
