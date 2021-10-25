@@ -49,9 +49,9 @@ Sets device’s friendly name
 DEVICE.CONFIG.LOCATION [[deviceLocation]]
 Sets device’s location
 
-DEVICE.CONFIG.SENSOR.PUBLISHINTERVAL [[milliSeconds]]
+DEVICE.CONFIG.SENSOR.PUBLISHINTERVAL [[sensorName]] [[milliSeconds]]
 
-DEVICE.CONFIG.SENSOR.UPDATEINTERVAL [[milliSeconds]]
+DEVICE.CONFIG.SENSOR.UPDATEINTERVAL [[sensorName]] [[milliSeconds]]
 
 GET.SENSORS [[deviceName]] [sensorName]
 
