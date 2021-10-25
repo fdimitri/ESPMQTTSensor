@@ -1,4 +1,43 @@
 #ifdef CONFIG_HARDWARE_BME280
+#include <Arduino.h>
+#include <PubSubClient.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <EEPROM.h>
+#include <CRC32.h>
+
+#include <stdint.h>
+#include <stdio.h>
+
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+
+#include "errors.h"
+#include "structs.h"
+#include "config.h"
+#include "parse.h"
+#include "sensors.h"
+#include "display.h"
+#include "mqtt.h"
+#include "serial.h"
+#include "eeprom.h"
+#include "tasks.h"
+#include "sensor_htu31.h"
+#include "sensor_bme280.h"
+
+#define SEALEVELPRESSURE_HPA (1013.25)
+
+int bme280_init();
+int bme280_register_functions();
+void bme280_read_pressure(char *buf);
+void bme280_read_temp(char *buf);
+void bme280_read_altitude(char *buf);
+void bme280_read_humidity(char *buf);
+
+Adafruit_BME280 bme; // I2C
+
 int bme280_init() {
   unsigned status;
 

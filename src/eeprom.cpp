@@ -1,6 +1,59 @@
+#include <Arduino.h>
+#include <stdint.h>
+#include <PubSubClient.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <EEPROM.h>
+#include <CRC32.h>
+
+#include "errors.h"
+#include "structs.h"
+#include "config.h"
+#include "parse.h"
+#include "sensors.h"
+#include "display.h"
+#include "mqtt.h"
+#include "serial.h"
+//#include "eeprom.h"
+#include "tasks.h"
+#include "sensor_htu31.h"
+#include "sensor_bme280.h"
+
+void eeprom_save_config();
+int eeprom_load_config();
+void eeprom_init();
+struct deviceConfiguration *eeprom_get_config();
+uint32_t eeprom_get_crc32(struct deviceConfiguration *d);
+void eeprom_dump_config(struct deviceConfiguration *d);
+
+CRC32 crc32;
+struct deviceConfiguration device;
+
+struct deviceConfiguration device_default_config = {
+  VERSION, 
+  CONFIG_VERSION, 
+  "unnamed",          // name
+  "nolocation",       // location
+  "deviceconfig",     // wifi_ssid
+  "deviceconfig",     // wifi_psk
+  "mqtt.sensorconfig.local",  // mqtt_broker
+  "default",                  // mqtt_user
+  "default",                  // mqtt_pass
+  1833,                       // mqtt_port
+  0
+};
+
+
 void eeprom_init() {
   EEPROM.begin(EEPROM_SIZE);
   eeprom_load_config();
+}
+
+void eeprom_save_default_config() {
+  memcpy((void *) &device, (void *) &device_default_config, sizeof(device));
+  eeprom_save_config();
 }
 
 void eeprom_save_config() {
@@ -57,7 +110,7 @@ void eeprom_update_config() {
   EEPROM.commit();
 }
 
-void eeprom_dump_config(deviceConfiguration *d) {
+void eeprom_dump_config(struct deviceConfiguration *d) {
   serial_printf("Version: %s, %d\n", d->version, d->config_version);
   serial_printf("Name: %s, Location: %s\n", d->name, d->location);
   serial_printf("SSID: %s, PSK: %s\n", d->wifi_ssid, d->wifi_psk);
@@ -66,7 +119,7 @@ void eeprom_dump_config(deviceConfiguration *d) {
   serial_printf("CRC32: %d\n", d->crc32);
 }
 
-uint32_t eeprom_get_crc32(deviceConfiguration *d) {
+uint32_t eeprom_get_crc32(struct deviceConfiguration *d) {
   uint32_t crc;
   serial_printf("Calculate on %p, %d - %d (%d)\n", &device, sizeof(deviceConfiguration), sizeof(device.crc32), sizeof(deviceConfiguration) - sizeof(device.crc32));
   crc = CRC32::calculate((uint8_t *) &device, sizeof(deviceConfiguration) - sizeof(device.crc32));

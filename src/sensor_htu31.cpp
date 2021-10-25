@@ -1,4 +1,34 @@
 #ifdef CONFIG_HARDWARE_HTU31
+
+#include <Arduino.h>
+#include <PubSubClient.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <EEPROM.h>
+#include <CRC32.h>
+
+#include <stdint.h>
+#include <stdio.h>
+
+#include <Adafruit_HTU31D.h>
+
+
+#include "errors.h"
+#include "structs.h"
+#include "config.h"
+#include "parse.h"
+#include "sensors.h"
+#include "display.h"
+#include "mqtt.h"
+#include "serial.h"
+#include "eeprom.h"
+#include "tasks.h"
+#include "sensor_htu31.h"
+#include "sensor_bme280.h"
+Adafruit_HTU31D htu = Adafruit_HTU31D();
+
 int htu31_init() {
   serial_printf("htu31_init(): Called\n");
   if (!(htu.begin(0x40) || htu.begin(0x41))) {

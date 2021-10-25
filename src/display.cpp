@@ -1,3 +1,35 @@
+#include <Arduino.h>
+#include <PubSubClient.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <EEPROM.h>
+#include <CRC32.h>
+
+#include <stdint.h>
+#include <stdio.h>
+
+#include "errors.h"
+#include "structs.h"
+#include "config.h"
+#include "parse.h"
+#include "sensors.h"
+// #include "display.h"
+#include "mqtt.h"
+#include "serial.h"
+#include "eeprom.h"
+#include "tasks.h"
+#include "sensor_htu31.h"
+#include "sensor_bme280.h"
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+void oled_msgLn(char *str, unsigned int length);
+void oled_msg(const char *str, unsigned int length);
+void oled_printf(const char *fmt, ...);
+void oled_init(void);
+void oled_print(const char *msg);
+
 void oled_msg(const char *str, unsigned int length) {
   for(unsigned int i=0; i<length; i++) {
     display.write(str[i]);

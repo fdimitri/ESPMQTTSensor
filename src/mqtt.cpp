@@ -10,6 +10,9 @@ void mqtt_connect() {
   char msgbuf[256];
   uint8_t retrycount = 16;
 
+  serial_printf("Connecting to MQTT..\n");
+  oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
+
   client.setServer(device.mqtt_broker, device.mqtt_port);
   client.setCallback(callback);
 
