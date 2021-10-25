@@ -24,11 +24,17 @@
 
 #ifdef CONFIG_HARDWARE_HTU31
 #include <Adafruit_HTU31D.h>
-extern Adafruit_HTU31D htu;
 #endif
 
 #ifdef CONFIG_HARDWARE_BME280
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-extern Adafruit_BME280 bme; // I2C
 #endif
+
+#ifdef ESP32
+#include <WiFi.h>
+#endif
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#endif
+

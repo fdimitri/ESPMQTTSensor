@@ -1,3 +1,4 @@
+#include "config.h"
 #ifdef CONFIG_HARDWARE_BME280
 #include <Arduino.h>
 #include <PubSubClient.h>
@@ -16,7 +17,7 @@
 
 #include "errors.h"
 #include "structs.h"
-#include "config.h"
+// #include "config.h"
 #include "parse.h"
 #include "sensors.h"
 #include "display.h"
@@ -25,7 +26,7 @@
 #include "eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
-#include "sensor_bme280.h"
+// #include "sensor_bme280.h"
 
 #define SEALEVELPRESSURE_HPA (1013.25)
 

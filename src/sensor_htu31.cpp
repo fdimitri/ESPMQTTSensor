@@ -1,6 +1,7 @@
+#include "config.h"
 #ifdef CONFIG_HARDWARE_HTU31
-
 #include <Arduino.h>
+#include <stdint.h>
 #include <PubSubClient.h>
 #include <SPI.h>
 #include <Wire.h>
@@ -8,12 +9,7 @@
 #include <Adafruit_SSD1306.h>
 #include <EEPROM.h>
 #include <CRC32.h>
-
-#include <stdint.h>
-#include <stdio.h>
-
-#include <Adafruit_HTU31D.h>
-
+#include <ESP_EEPROM.h>
 
 #include "errors.h"
 #include "structs.h"
@@ -25,9 +21,15 @@
 #include "serial.h"
 #include "eeprom.h"
 #include "tasks.h"
-#include "sensor_htu31.h"
+//#include "sensor_htu31.h"
 #include "sensor_bme280.h"
+
 Adafruit_HTU31D htu = Adafruit_HTU31D();
+
+void htu31_read_temp(char *buf);
+void htu31_read_humidity(char *buf);
+int htu31_init();
+int htu31_register_functions();
 
 int htu31_init() {
   serial_printf("htu31_init(): Called\n");

@@ -10,6 +10,19 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include "errors.h"
+#include "structs.h"
+#include "config.h"
+#include "parse.h"
+#include "display.h"
+#include "mqtt.h"
+#include "serial.h"
+#include "eeprom.h"
+#include "tasks.h"
+#include "sensor_htu31.h"
+#include "sensor_bme280.h"
+#include "main.h"
+
 void sensor_get_stub(char *);
 void sensor_get_free_heap(char *);
 void sensor_get_total_heap(char *);

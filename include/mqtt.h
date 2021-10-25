@@ -1,4 +1,4 @@
-void callback(char *topic, byte *payload, unsigned int length);
-void mqtt_connect();
-char *mqtt_build_topic(char *topic);
-void publish_sensor(struct sensorControlData *sensor);
+extern void callback(char *topic, byte *payload, unsigned int length);
+extern void mqtt_connect();
+extern char *mqtt_build_topic(char *topic);
+extern void publish_sensor(struct sensorControlData *sensor);
