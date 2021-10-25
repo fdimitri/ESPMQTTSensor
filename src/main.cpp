@@ -1,3 +1,6 @@
+#define ESP8266 yes
+#include <Arduino.h>
+#include <stdint.h>
 #include <PubSubClient.h>
 #include <SPI.h>
 #include <Wire.h>
@@ -5,7 +8,6 @@
 #include <Adafruit_SSD1306.h>
 #include <EEPROM.h>
 #include <CRC32.h>
-
 
 #include "errors.h"
 #include "structs.h"
@@ -27,13 +29,12 @@
 #include <ESP8266WiFi.h>
 #endif
 
+
 WiFiClient espClient;
 PubSubClient client(espClient);
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-CRC32 crc32;
+
 
 void setup() {
-  char msgbuf[256];
   Serial.begin(115200);
   #ifdef ESP32
   Wire.begin();
@@ -42,14 +43,16 @@ void setup() {
   Wire.begin(2,0);
   #endif
 
+  Wire.setClock(CONFIG_IIC_SPEED);
+
   eeprom_init();
   int config_load_result = eeprom_load_config();
   eeprom_dump_config(eeprom_get_config());
 
-  if (config_load_result < 0 || device.wifi_ssid[1] == 0xFF) {
+  if (config_load_result < 0 || device.wifi_ssid[1] == 0xFF || device.wifi_ssid[0] == 0x00) {
     serial_printf("Device not configured or CRC32 invalid, loading default configuration");
-    memcpy((void *) &device, (void *) &device_default_config, sizeof(device));
-    eeprom_save_config();
+    eeprom_save_default_config();
+
   }
 
   Serial.println("Initializing display..");
@@ -83,11 +86,8 @@ void setup() {
  
   sensors_init();
 
-  serial_printf("Connecting to MQTT..\n");
-  oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
-
   mqtt_connect();
-  delay(2000);
+
   char topicbuf[128];
   client.subscribe("system/#");
   client.subscribe(mqtt_build_topic((char *) &topicbuf));

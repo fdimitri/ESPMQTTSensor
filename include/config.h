@@ -3,11 +3,6 @@
 
 #define ESP8266
 
-#ifndef STASSID
-#define STASSID "TellMyWiFiFoundSomeoneWhos24"
-#define STAPSK  "TwinTurbo2.7"
-#endif
-
 #define SSD1306_128_32
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -17,7 +12,7 @@
 
 #define BUFFER_SIZE 256
 
-#define EEPROM_SIZE 4096
+#define EEPROM_SIZE 3072
 #define EEPROM_DEVICE_CONFIG_OFFSET 0x0
 
 #define CONFIG_VERSION 2
@@ -29,27 +24,19 @@
 
 #ifdef CONFIG_HARDWARE_HTU31
 #include <Adafruit_HTU31D.h>
-Adafruit_HTU31D htu = Adafruit_HTU31D();
 #endif
 
 #ifdef CONFIG_HARDWARE_BME280
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-Adafruit_BME280 bme; // I2C
 #endif
 
-struct deviceConfiguration device;
+#ifdef ESP32
+#include <WiFi.h>
+#endif
+#ifdef ESP8266
+#include <ESP8266WiFi.h>
+#endif
 
-struct deviceConfiguration device_default_config = {
-  VERSION, 
-  CONFIG_VERSION, 
-  "unnamed",          // name
-  "nolocation",       // location
-  "deviceconfig",     // wifi_ssid
-  "deviceconfig",     // wifi_psk
-  "mqtt.sensorconfig.local",  // mqtt_broker
-  "default",                  // mqtt_user
-  "default",                  // mqtt_pass
-  1833,                       // mqtt_port
-  0
-};
+#define CONFIG_IIC_SPEED 400000L
+#define CONFIG_SERIAL_COMMANDBUFFER_SIZE 256

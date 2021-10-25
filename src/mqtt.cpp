@@ -1,3 +1,34 @@
+#include <Arduino.h>
+#include <PubSubClient.h>
+#include <SPI.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+#include <EEPROM.h>
+#include <CRC32.h>
+
+#include <stdint.h>
+#include <stdio.h>
+
+#include "errors.h"
+#include "structs.h"
+#include "config.h"
+#include "parse.h"
+#include "sensors.h"
+#include "display.h"
+// #include "mqtt.h"
+#include "serial.h"
+#include "eeprom.h"
+#include "tasks.h"
+#include "sensor_htu31.h"
+#include "sensor_bme280.h"
+#include "main.h"
+
+void callback(char *topic, byte *payload, unsigned int length);
+void mqtt_connect();
+char *mqtt_build_topic(char *topic);
+void publish_sensor(struct sensorControlData *sensor);
+
 void callback(char *topic, byte *payload, unsigned int length) {
   display.clearDisplay();
   display.setCursor(0,0);
@@ -9,6 +40,9 @@ void callback(char *topic, byte *payload, unsigned int length) {
 void mqtt_connect() {
   char msgbuf[256];
   uint8_t retrycount = 16;
+
+  serial_printf("Connecting to MQTT..\n");
+  oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
 
   client.setServer(device.mqtt_broker, device.mqtt_port);
   client.setCallback(callback);
