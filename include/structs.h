@@ -1,5 +1,5 @@
 typedef void (*msgCallback)(char *topic, char *argv[], unsigned int argc);
-typedef void (*scdCallback)(char *buf);
+typedef void (*scdCallback)(void *customData, char *buf);
 
 struct sensorControlData {
   bool isEnabled;
@@ -10,6 +10,7 @@ struct sensorControlData {
   scdCallback readSensor;
   scdCallback getState;
   scdCallback setState;
+  void *customData;
   struct sensorControlData *next;
 };
 

@@ -99,7 +99,7 @@ void parse_debug_get_sensor(char *topic, char *argv[], unsigned int argc) {
 }
 
 void parse_device_config_clear(char *topic, char *argv[], unsigned int argc) {
-  memset((void *) &device, 255, sizeof(device));
+  memset((void *) &device, 0, sizeof(device));
   eeprom_dump_config(&device);
 }
 

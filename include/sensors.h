@@ -5,7 +5,7 @@ extern int sensors_dump_scd_entry(struct sensorControlData *d);
 extern int sensors_dump_scd_list();
 extern struct sensorControlData *sensor_get_by_name(char *name);
 extern void sensor_definition_register(struct sensorControlData *scd);
-extern struct sensorControlData *sensor_definition_allocate(const char *sensorName, const char *sensorHardware, scdCallback readSensor, scdCallback getState, scdCallback setState, uint32_t sensorFlags);
+extern struct sensorControlData *sensor_definition_allocate(const char *sensorName, const char *sensorHardware, scdCallback readSensor, scdCallback getState, scdCallback setState, uint32_t sensorFlags, void *customData);
 extern void sensors_read_all();
 extern void sensors_publish_all();
 //extern struct sensorControlData sensors[];

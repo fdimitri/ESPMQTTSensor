@@ -24,10 +24,10 @@
 #include "main.h"
 #include "sensors.h"
 
-void syssensor_get_free_heap(char *);
-void syssensor_get_total_heap(char *);
-void syssensor_get_uptime(char *);
-void syssensor_get_rssi(char *buf);
+void syssensor_get_free_heap(void *customData, char *buf);
+void syssensor_get_total_heap(void *customData, char *buf);
+void syssensor_get_uptime(void *customData, char *buf);
+void syssensor_get_rssi(void *customData, char *buf);
 int syssensor_register_functions();
 
 int syssensor_init() {
@@ -38,24 +38,24 @@ int syssensor_init() {
 int syssensor_register_functions() {
   struct sensorControlData *cptr;
 
-  cptr = sensor_definition_allocate("system.wifi.RSSI", "esp", syssensor_get_rssi, NULL, NULL, 0x0);
+  cptr = sensor_definition_allocate("system.wifi.RSSI", "esp", syssensor_get_rssi, NULL, NULL, 0x0, NULL);
   sensor_definition_register(cptr);
 
-  cptr = sensor_definition_allocate("system.uptime", "esp", syssensor_get_uptime, NULL, NULL, 0x0);
+  cptr = sensor_definition_allocate("system.uptime", "esp", syssensor_get_uptime, NULL, NULL, 0x0, NULL);
   sensor_definition_register(cptr);
 
-  cptr = sensor_definition_allocate("system.memory.free", "esp", syssensor_get_free_heap, NULL, NULL, 0x0);
+  cptr = sensor_definition_allocate("system.memory.free", "esp", syssensor_get_free_heap, NULL, NULL, 0x0, NULL);
   sensor_definition_register(cptr);
 
 #ifdef ESP32
-  cptr = sensor_definition_allocate("system.memory.total", "esp", syssensor_get_total_heap, NULL, NULL, 0x0);
+  cptr = sensor_definition_allocate("system.memory.total", "esp", syssensor_get_total_heap, NULL, NULL, 0x0, NULL);
   sensor_definition_register(cptr);
 #endif
 
   return(0);
 }
 
-void syssensor_get_uptime(char *buf) {
+void syssensor_get_uptime(void *customData, char *buf) {
   #ifdef ESP32
   sprintf(buf, "%lld", esp_timer_get_time());
   #endif
@@ -64,17 +64,17 @@ void syssensor_get_uptime(char *buf) {
   #endif
 }
 
-void syssensor_get_free_heap(char *buf) {
+void syssensor_get_free_heap(void *customData, char *buf) {
   sprintf(buf, "%d", ESP.getFreeHeap());
 }
 
-void syssensor_get_total_heap(char *buf) {
+void syssensor_get_total_heap(void *customData, char *buf) {
   #ifdef ESP32
   sprintf(buf, "%d", ESP.getHeapSize());
   #endif
 }
 
-void syssensor_get_rssi(char *buf) {
+void syssensor_get_rssi(void *customData, char *buf) {
   long rssi = WiFi.RSSI();
   sprintf(buf, "%ld", rssi);
 }

@@ -32,7 +32,7 @@ int sensors_dump_scd_list();
 struct sensorControlData *sensor_get_by_name(char *name);
 struct sensorControlData *scd_head = NULL;
 void sensor_definition_register(struct sensorControlData *scd);
-struct sensorControlData *sensor_definition_allocate(const char *sensorName, const char *sensorHardware, scdCallback readSensor, scdCallback getState, scdCallback setState, uint32_t sensorFlags);
+struct sensorControlData *sensor_definition_allocate(const char *sensorName, const char *sensorHardware, scdCallback readSensor, scdCallback getState, scdCallback setState, uint32_t sensorFlags, void *customData);
 void sensors_publish_all();
 void sensors_read_all();
 int sensor_get_highest_index_by_name(char *name);
@@ -62,7 +62,7 @@ void sensor_get_stub(char *buf) {
   sprintf(buf, "%f", 3.2);
 }
 
-struct sensorControlData *sensor_definition_allocate(const char *sensorName, const char *sensorHardware, scdCallback readSensor = NULL, scdCallback getState = NULL, scdCallback setState = NULL, uint32_t sensorFlags = 0x0) {
+struct sensorControlData *sensor_definition_allocate(const char *sensorName, const char *sensorHardware, scdCallback readSensor = NULL, scdCallback getState = NULL, scdCallback setState = NULL, uint32_t sensorFlags = 0x0, void *customData = NULL) {
   struct sensorControlData *scd;
 
   scd = (struct sensorControlData *) malloc(sizeof(sensorControlData));
@@ -74,7 +74,7 @@ struct sensorControlData *sensor_definition_allocate(const char *sensorName, con
   scd->getState = getState;
   scd->setState = setState;
   scd->isEnabled = true;
-
+  scd->customData = customData;
   return(scd);
 }
 
@@ -82,8 +82,8 @@ void sensors_read_all() {
   struct sensorControlData *cptr = scd_head;
   while (cptr) {
     if (cptr->isEnabled) {
-      if (cptr->readSensor) cptr->readSensor((char *) &(cptr->currentData[0]));
-      if (cptr->getState) cptr->getState((char *) &(cptr->currentData[0]));
+      if (cptr->readSensor) cptr->readSensor(cptr->customData, (char *) &(cptr->currentData[0]));
+      if (cptr->getState) cptr->getState(cptr->customData, (char *) &(cptr->currentData[0]));
     }
     cptr = cptr->next;
   }
