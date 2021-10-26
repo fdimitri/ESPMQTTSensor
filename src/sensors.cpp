@@ -114,7 +114,6 @@ int sensor_get_highest_index_by_name(char *name) {
 
 void sensor_definition_register(struct sensorControlData *scd) {
   struct sensorControlData *cptr = scd_head;
-  struct sensorControlData *existing = NULL;
 
   int maxidx = sensor_get_highest_index_by_name(scd->sensorName);
 

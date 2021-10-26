@@ -24,9 +24,11 @@
 
 void task_update_sensors();
 void task_read_serial();
+void task_publish_sensors();
 
 struct taskRun tasks[] = {
    { "updateSensors", task_update_sensors, 2000, 0 },
+   { "publishSensors", task_publish_sensors, 5000, 0 },
    { "readSerial", task_read_serial, 0, 0 },
    { NULL, NULL, 0, 0 },
 };
