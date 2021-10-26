@@ -10,5 +10,8 @@ extern void parse_device_mqtt_subscribe(char *topic, char *argv[], unsigned int 
 extern void parse_debug_config_dump(char *topic, char *argv[], unsigned int argc);
 extern void parse_debug_rconfig_dump(char *topic, char *argv[], unsigned int argc);
 extern void parse_debug_get_sensor(char *topic, char *argv[], unsigned int argc);
+extern void parse_debug_scd_dump(char *topic, char *argv[], unsigned int argc);
 extern void parse_message(char *topic, char *omsg, unsigned int msgLength);
+
+
 extern struct msgCallbackList msgs[];

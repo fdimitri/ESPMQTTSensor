@@ -53,45 +53,21 @@ int bme280_init() {
 }
 
 int bme280_register_functions() {
-  const char *temp_hardware_name = "bme280_temp";
-  const char *humidity_hardware_name = "bme280_humidity";
-  const char *altitude_hardware_name = "bme280_altitude";
-  const char *pressure_hardware_name = "bme280_pressure";
   struct sensorControlData *cptr;
-
-
-  serial_printf("Allocating ram for cptr\n");
   
-  cptr = (struct sensorControlData *) malloc(sizeof(struct sensorControlData));
-  memset((void *) cptr, 0, sizeof(struct sensorControlData));
+  serial_printf("Allocating ram for cptr\n");
+  cptr = sensor_definition_allocate("comfort.temperature", "bme280", bme280_read_temp, NULL, NULL, 0x0);
+  sensor_definition_register(cptr);
 
-  serial_printf("Copying names into sensorName, sensorHardware\n");
+  cptr = sensor_definition_allocate("comfort.relativeHumidity", "bme280", bme280_read_humidity, NULL, NULL, 0x0);
+  sensor_definition_register(cptr); 
 
-  strcpy(cptr->sensorName, "comfort.temperature\0");
-  strcpy(cptr->sensorHardware, temp_hardware_name);
-  cptr->readSensor = bme280_read_temp;
-  cptr->getState = cptr->setState = NULL;
-  sensor_definition_register_functions(cptr);
+  cptr = sensor_definition_allocate("comfort.barometricPressure", "bme280", bme280_read_pressure, NULL, NULL, 0x0);
+  sensor_definition_register(cptr);
 
-  strcpy(cptr->sensorName, "comfort.relativeHumidity\0");
-  strcpy(cptr->sensorHardware, humidity_hardware_name);
-  cptr->readSensor = bme280_read_humidity;
-  cptr->getState = cptr->setState = NULL;
-  sensor_definition_register_functions(cptr);
+  cptr = sensor_definition_allocate("comfort.altitude", "bme280", bme280_read_altitude, NULL, NULL, 0x0);
+  sensor_definition_register(cptr); 
 
-  strcpy(cptr->sensorName, "comfort.barometricPressure\0");
-  strcpy(cptr->sensorHardware, altitude_hardware_name);
-  cptr->readSensor = bme280_read_pressure;
-  cptr->getState = cptr->setState = NULL;
-  sensor_definition_register_functions(cptr);
-
-  strcpy(cptr->sensorName, "comfort.approxAltitude\0");
-  strcpy(cptr->sensorHardware, pressure_hardware_name);
-  cptr->readSensor = bme280_read_altitude;
-  cptr->getState = cptr->setState = NULL;
-  sensor_definition_register_functions(cptr);
-
-  free(cptr);
   return(0);
 }
 

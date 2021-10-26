@@ -44,38 +44,15 @@ int htu31_init() {
 }
 
 int htu31_register_functions() {
-  const char *temp_hardware_name = "htu31_temp\0";
-  const char *hum_hardware_name = "htu31_humidity\0";
   struct sensorControlData *cptr;
 
-
   serial_printf("Allocating ram for cptr\n");
-  cptr = (struct sensorControlData *) malloc(sizeof(struct sensorControlData));
-  memset((void *) cptr, 0, sizeof(struct sensorControlData));
+  cptr = sensor_definition_allocate("comfort.temperature", "htu31d", htu31_read_temp, NULL, NULL, 0x0);
+  sensor_definition_register(cptr);
 
-  serial_printf("Copying names into sensorName, sensorHardware\n");
-  strcpy(cptr->sensorName, "comfort.temperature\0");
-  strcpy(cptr->sensorHardware, temp_hardware_name);
+  cptr = sensor_definition_allocate("comfort.relativeHumidity", "htu31d", htu31_read_humidity, NULL, NULL, 0x0);
+  sensor_definition_register(cptr); 
 
-  serial_printf("Assigning functions..\n");
-  cptr->readSensor = htu31_read_temp;
-  cptr->getState = cptr->setState = NULL;
-
-  serial_printf("SCD Data to register:\n");
-  sensors_dump_scd_entry(cptr);
-
-  serial_printf("Calling sensor_definition_register_functions()\n");
-  sensor_definition_register_functions(cptr);
-
-  strcpy(cptr->sensorName, "comfort.relativeHumidity\0");
-  strcpy(cptr->sensorHardware, hum_hardware_name);
-  cptr->readSensor = htu31_read_humidity;
-
-  sensor_definition_register_functions(cptr);
-
-  serial_printf("htu31_register_functions(): Freeing cptr..\n");
-  free(cptr);
-  serial_printf("htu31_register_functions(): Returning..\n");
   return(0);
 }
 

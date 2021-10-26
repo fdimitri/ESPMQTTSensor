@@ -34,7 +34,10 @@ void parse_device_mqtt_subscribe(char *topic, char *argv[], unsigned int argc);
 void parse_debug_config_dump(char *topic, char *argv[], unsigned int argc);
 void parse_debug_rconfig_dump(char *topic, char *argv[], unsigned int argc);
 void parse_debug_get_sensor(char *topic, char *argv[], unsigned int argc);
+void parse_debug_scd_dump(char *topic, char *argv[], unsigned int argc);
+
 void parse_message(char *topic, char *omsg, unsigned int msgLength);
+
 
 
 struct msgCallbackList msgs[] = {
@@ -49,6 +52,7 @@ struct msgCallbackList msgs[] = {
   { "DEBUG.CONFIG.DUMP", parse_debug_config_dump },
   { "DEBUG.CONFIG.RDUMP", parse_debug_rconfig_dump },
   { "DEBUG.GET.SENSOR", parse_debug_get_sensor },
+  { "DEBUG.SCD.DUMP", parse_debug_scd_dump },
   { "DEVICE.CONFIG.CLEAR", parse_device_config_clear },
   { "DEVICE.MQTT.SUBSCRIBE", parse_device_mqtt_subscribe },
   { "GET.SENSOR", parse_config_stub },
@@ -65,6 +69,9 @@ void parse_system_init_device(char *topic, char *argv[], unsigned int argc) {
 
 void parse_config_stub(char *topic, char *argv[], unsigned int argc) {
 
+}
+void parse_debug_scd_dump(char *topic, char *argv[], unsigned int argc) {
+  sensors_dump_scd_list();
 }
 
 void parse_device_reboot(char *topic, char *argv[], unsigned int argc) {

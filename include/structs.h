@@ -1,17 +1,21 @@
+typedef void (*msgCallback)(char *topic, char *argv[], unsigned int argc);
+typedef void (*scdCallback)(char *buf);
+
 struct sensorControlData {
   bool isEnabled;
   char sensorName[64];
   char sensorHardware[16];
   char currentData[16];
   uint32_t sensorFlags;
-  void (*readSensor)(char *buf);
-  void (*getState)(char *buf);
-  void (*setState)(char *buf);
+  scdCallback readSensor;
+  scdCallback getState;
+  scdCallback setState;
+  struct sensorControlData *next;
 };
 
 struct msgCallbackList {
   const char *command;
-  void (*callback)(char *topic, char *argv[], unsigned int argc);
+  msgCallback callback;
 };
 
 struct deviceConfiguration {

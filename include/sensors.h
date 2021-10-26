@@ -1,12 +1,11 @@
 extern void sensor_get_stub(char *);
-extern void sensor_get_free_heap(char *);
-extern void sensor_get_total_heap(char *);
-extern void sensor_get_uptime(char *);
-extern void sensor_get_rssi(char *buf);
 extern int sensor_definition_register_functions(struct sensorControlData *scd);
 extern int sensors_init();
 extern int sensors_dump_scd_entry(struct sensorControlData *d);
 extern int sensors_dump_scd_list();
 extern struct sensorControlData *sensor_get_by_name(char *name);
-
-extern struct sensorControlData sensors[];
+extern void sensor_definition_register(struct sensorControlData *scd);
+extern struct sensorControlData *sensor_definition_allocate(const char *sensorName, const char *sensorHardware, scdCallback readSensor, scdCallback getState, scdCallback setState, uint32_t sensorFlags);
+extern void sensors_read_all();
+extern void sensors_publish_all();
+//extern struct sensorControlData sensors[];
