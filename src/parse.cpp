@@ -124,7 +124,7 @@ void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc) {
   strcpy((char *) &device.wifi_ssid, argv[1]);
   strcpy((char *) &device.wifi_psk, argv[2]);
   eeprom_save_config();
-  WiFi.begin(device.wifi_ssid, device.wifi_psk);
+  wifi_connect();
 }
 
 void parse_device_config_mqtt(char *topic, char *argv[], unsigned int argc) {
@@ -145,6 +145,7 @@ void parse_device_config_mqtt(char *topic, char *argv[], unsigned int argc) {
   strcpy((char *) &device.mqtt_user, argv[3]);
   strcpy((char *) &device.mqtt_pass, argv[4]);
   eeprom_save_config();
+  mqtt_connect();
 }
 
 void parse_device_config_name(char *topic, char *argv[], unsigned int argc) {

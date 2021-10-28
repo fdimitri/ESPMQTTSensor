@@ -87,6 +87,7 @@ void loop() {
 void wifi_connect() {
   if (WiFi.status() == WL_CONNECTED) return;
   WiFi.begin(device.wifi_ssid, device.wifi_psk);
+  WiFi.mode(WIFI_STA);
   serial_printf("Connecting to %s with PSK %s", device.wifi_ssid, device.wifi_psk);
 
   unsigned int i = 0;
