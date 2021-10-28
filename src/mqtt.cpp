@@ -40,10 +40,12 @@ void callback(char *topic, byte *payload, unsigned int length) {
 void mqtt_connect() {
   char msgbuf[256];
   uint8_t retrycount = 16;
+  
+  if (client.connected()) return;
 
   serial_printf("Connecting to MQTT..\n");
   oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
-
+  
   client.setServer(device.mqtt_broker, device.mqtt_port);
   client.setCallback(callback);
 
@@ -69,8 +71,12 @@ char *mqtt_build_topic(char *topic) {
 }
 
 void publish_sensor(struct sensorControlData *sensor) {
-  char buffer[128];
-  char topicbuf[128];
-  sprintf((char *) &buffer, "UPDATE.SENSOR %s %s", sensor->sensorName, sensor->currentData);
-  client.publish(mqtt_build_topic((char *) &topicbuf), (char *) &buffer);
+  char *buffer = (char *) malloc(256);
+  char *topicbuf = (char *) malloc(256);
+  memset((void *) buffer, 0, 256);
+  memset((void *) topicbuf, 0, 256);
+  sprintf(buffer, "UPDATE.SENSOR %s %s", sensor->sensorName, sensor->currentData);
+  client.publish(mqtt_build_topic(topicbuf), buffer, strlen(buffer) + 1);
+  free(buffer);
+  free(topicbuf);
 }

@@ -17,7 +17,7 @@
 
 #define CONFIG_VERSION 2
 #define BUILD_DATE "202110260116"
-#define VERSION "0.0.1"
+#define VERSION "0.0.2"
 
 
 #define CONFIG_HARDWARE_HTU31

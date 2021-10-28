@@ -33,6 +33,7 @@
 WiFiClient espClient;
 PubSubClient client(espClient);
 
+void wifi_connect();
 
 void setup() {
   Serial.begin(115200);
@@ -61,9 +62,30 @@ void setup() {
     Serial.println(F("SSD1306 allocation failed"));
   }
   oled_init();
+  sensors_init();
 
   oled_printf("Starting up!\nWiFi SSD:\n%s", device.wifi_ssid);
 
+  wifi_connect();
+
+  display.clearDisplay();
+  display.setCursor(0, 0); 
+
+  mqtt_connect();
+
+  char topicbuf[128];
+  client.subscribe("system/#");
+  client.subscribe(mqtt_build_topic((char *) &topicbuf));
+}
+
+void loop() {
+  client.loop(); // MQTT Client Loop in library
+  tasks_loop();
+  yield();
+}
+
+void wifi_connect() {
+  if (WiFi.status() == WL_CONNECTED) return;
   WiFi.begin(device.wifi_ssid, device.wifi_psk);
   serial_printf("Connecting to %s with PSK %s", device.wifi_ssid, device.wifi_psk);
 
@@ -77,29 +99,5 @@ void setup() {
   
   Serial.println("Connected to the WiFi network");
   oled_printf("\nConnected!");
-  
-  delay(2000);
-
-  display.clearDisplay();
-  display.setCursor(0, 0); 
-  
- 
-  sensors_init();
-
-  mqtt_connect();
-
-  char topicbuf[128];
-  client.subscribe("system/#");
-  client.subscribe(mqtt_build_topic((char *) &topicbuf));
-}
-
-void loop() {
-  client.loop(); // MQTT Client Loop in library
-  for (unsigned int i = 0; tasks[i].func != NULL; i++) {
-    if (!tasks[i].run_every_millis || millis() - tasks[i].last_run_time >= tasks[i].run_every_millis) {
-      tasks[i].last_run_time = millis();
-      tasks[i].func();
-    }
-  }
-  yield();
+  return;
 }

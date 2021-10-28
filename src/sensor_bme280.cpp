@@ -47,10 +47,10 @@ int bme280_init() {
   for (int i = 0; i < 2; i++) {
     status[i] = bme[i].begin(0x76 + i);
     if (!status[i]) {
-      serial_printf("Could not find BME280 sensor on I2C at address %x\n", 0x76 + i);
+      serial_printf("Could not find BME280 sensor on I2C at address 0x%x\n", 0x76 + i);
     }
     else {
-      serial_printf("Found BME280 sensor on I2C at address %x\n", 0x76 + i);
+      serial_printf("Found BME280 sensor on I2C at address 0x%x\n", 0x76 + i);
       bme280_register_functions(i);  
     }
   }
