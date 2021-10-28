@@ -22,6 +22,7 @@
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"
 #include "sensor_system.h"
+#include "sensor_esp8266adc.h"
 #include "main.h"
 
 void sensor_get_stub(char *);
@@ -176,6 +177,10 @@ int sensors_init() {
 
   #ifdef CONFIG_HARDWARE_HTU31
   htu31_init();
+  #endif
+
+  #ifdef CONFIG_HARDWARE_ESP8266ADC
+  adc8266_init();
   #endif
 
   return(0);
