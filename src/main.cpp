@@ -17,7 +17,7 @@
 #include "display.h"
 #include "mqtt.h"
 #include "serial.h"
-#include "eeprom.h"
+#include "project_eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"
@@ -91,7 +91,7 @@ void wifi_connect() {
   serial_printf("Connecting to %s with PSK %s", device.wifi_ssid, device.wifi_psk);
 
   unsigned int i = 0;
-  while (WiFi.status() != WL_CONNECTED && i++ < 100) {
+  while (WiFi.status() != WL_CONNECTED) {
       oled_print(".");
       Serial.print(".");
       delay(500);

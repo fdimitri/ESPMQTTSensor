@@ -1,7 +1,7 @@
 #undef ESP8266
 #undef ESP32
 
-#define ESP8266
+#define ESP32
 
 #define SSD1306_128_32
 
@@ -38,6 +38,10 @@
 #endif
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
+#endif
+
+#ifdef ESP8266
+#include <ESP_EEPROM.h>
 #endif
 
 #define CONFIG_IIC_SPEED 1000000L

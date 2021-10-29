@@ -11,6 +11,7 @@ extern void parse_debug_dump_config(char *topic, char *argv[], unsigned int argc
 extern void parse_debug_dump_runningconfig(char *topic, char *argv[], unsigned int argc);
 extern void parse_get_sensor(char *topic, char *argv[], unsigned int argc);
 extern void parse_debug_dump_scd(char *topic, char *argv[], unsigned int argc);
+extern void parse_dump_wifi(char *topic, char *argv[], unsigned int argc);
 extern void parse_message(char *topic, char *omsg, unsigned int msgLength);
 
 

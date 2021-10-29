@@ -9,7 +9,7 @@
 #include <Adafruit_SSD1306.h>
 #include <EEPROM.h>
 #include <CRC32.h>
-#include <ESP_EEPROM.h>
+
 
 #include "errors.h"
 #include "structs.h"
@@ -19,7 +19,7 @@
 #include "display.h"
 #include "mqtt.h"
 #include "serial.h"
-#include "eeprom.h"
+#include "project_eeprom.h"
 #include "tasks.h"
 //#include "sensor_htu31.h"
 #include "sensor_bme280.h"

@@ -17,7 +17,7 @@
 #include "display.h"
 #include "mqtt.h"
 #include "serial.h"
-#include "eeprom.h"
+#include "project_eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"
@@ -36,6 +36,7 @@ void parse_debug_dump_runningconfig(char *topic, char *argv[], unsigned int argc
 void parse_get_sensor(char *topic, char *argv[], unsigned int argc);
 void parse_debug_dump_scd(char *topic, char *argv[], unsigned int argc);
 void parse_system_identify_devices(char *topic, char *argv[], unsigned int argc);
+void parse_dump_wifi(char *topic, char *argv[], unsigned int argc);
 
 void parse_message(char *topic, char *omsg, unsigned int msgLength);
 
@@ -56,6 +57,7 @@ struct msgCallbackList msgs[] = {
   { "DEBUG.DUMP.RUNNINGCONFIG", parse_debug_dump_runningconfig },
   { "DEBUG.DUMP.SCD", parse_debug_dump_scd },
   { "DEBUG.GET.SENSOR", parse_get_sensor },
+  { "DEBUG.DUMP.WIFI", parse_dump_wifi },
 
   { "GET.SENSOR", parse_get_sensor },
   { "GET.STATE", parse_config_stub },
@@ -77,6 +79,10 @@ void parse_debug_dump_scd(char *topic, char *argv[], unsigned int argc) {
 
 void parse_device_reboot(char *topic, char *argv[], unsigned int argc) {
   ESP.restart();
+}
+
+void parse_dump_wifi(char *topic, char *argv[], unsigned int argc) {
+  serial_printf("WiFi status %d, IP %s\n", WiFi.status(), WiFi.localIP().toString().c_str());
 }
 
 void parse_debug_dump_config(char *topic, char *argv[], unsigned int argc) {

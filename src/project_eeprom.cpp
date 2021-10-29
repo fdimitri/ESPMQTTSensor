@@ -7,8 +7,6 @@
 #include <Adafruit_SSD1306.h>
 #include <EEPROM.h>
 #include <CRC32.h>
-#include <ESP_EEPROM.h>
-
 #include "errors.h"
 #include "structs.h"
 #include "config.h"

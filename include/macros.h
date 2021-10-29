@@ -1,0 +1,1 @@
+#define IS_SERIAL_TOPIC(x) (!strcmp(x, "serial"))

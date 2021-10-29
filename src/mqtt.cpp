@@ -18,7 +18,7 @@
 #include "display.h"
 // #include "mqtt.h"
 #include "serial.h"
-#include "eeprom.h"
+#include "project_eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"
@@ -52,7 +52,7 @@ void mqtt_connect() {
   if (client.connected()) return;
 
   serial_printf("Connecting to MQTT..\n");
-  oled_printf("MQTT on port %d\n%s", device.mqtt_port, device.mqtt_broker);
+  oled_printf("MQTT on port %d\n%s\0", device.mqtt_port, device.mqtt_broker);
   
   client.setServer(device.mqtt_broker, device.mqtt_port);
   client.setCallback(callback);
