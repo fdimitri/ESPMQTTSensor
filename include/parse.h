@@ -7,10 +7,10 @@ extern void parse_device_config_wifi(char *topic, char *argv[], unsigned int arg
 extern void parse_device_config_mqtt(char *topic, char *argv[], unsigned int argc);
 extern void parse_device_config_clear(char *topic, char *argv[], unsigned int argc);
 extern void parse_device_mqtt_subscribe(char *topic, char *argv[], unsigned int argc);
-extern void parse_debug_config_dump(char *topic, char *argv[], unsigned int argc);
-extern void parse_debug_rconfig_dump(char *topic, char *argv[], unsigned int argc);
-extern void parse_debug_get_sensor(char *topic, char *argv[], unsigned int argc);
-extern void parse_debug_scd_dump(char *topic, char *argv[], unsigned int argc);
+extern void parse_debug_dump_config(char *topic, char *argv[], unsigned int argc);
+extern void parse_debug_dump_runningconfig(char *topic, char *argv[], unsigned int argc);
+extern void parse_get_sensor(char *topic, char *argv[], unsigned int argc);
+extern void parse_debug_dump_scd(char *topic, char *argv[], unsigned int argc);
 extern void parse_message(char *topic, char *omsg, unsigned int msgLength);
 
 

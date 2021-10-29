@@ -8,4 +8,5 @@ extern void sensor_definition_register(struct sensorControlData *scd);
 extern struct sensorControlData *sensor_definition_allocate(const char *sensorName, const char *sensorHardware, scdCallback readSensor, scdCallback getState, scdCallback setState, uint32_t sensorFlags, void *customData);
 extern void sensors_read_all();
 extern void sensors_publish_all();
-//extern struct sensorControlData sensors[];
+extern void sensor_read(struct sensorControlData *cptr);
+extern struct sensorControlData sensors[];

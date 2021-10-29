@@ -9,6 +9,7 @@
 #include <CRC32.h>
 
 #include "errors.h"
+#include "macros.h"
 #include "structs.h"
 #include "config.h"
 // #include "parse.h"
@@ -22,7 +23,6 @@
 #include "sensor_bme280.h"
 #include "main.h"
 
-void parse_system_init_device(char *, char *[], unsigned int);
 void parse_config_stub(char *, char *[], unsigned int);
 void parse_device_config_name(char *, char *[], unsigned int);
 void parse_device_config_location(char *, char *[], unsigned int);
@@ -31,10 +31,10 @@ void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc);
 void parse_device_config_mqtt(char *topic, char *argv[], unsigned int argc);
 void parse_device_config_clear(char *topic, char *argv[], unsigned int argc);
 void parse_device_mqtt_subscribe(char *topic, char *argv[], unsigned int argc);
-void parse_debug_config_dump(char *topic, char *argv[], unsigned int argc);
-void parse_debug_rconfig_dump(char *topic, char *argv[], unsigned int argc);
-void parse_debug_get_sensor(char *topic, char *argv[], unsigned int argc);
-void parse_debug_scd_dump(char *topic, char *argv[], unsigned int argc);
+void parse_debug_dump_config(char *topic, char *argv[], unsigned int argc);
+void parse_debug_dump_runningconfig(char *topic, char *argv[], unsigned int argc);
+void parse_get_sensor(char *topic, char *argv[], unsigned int argc);
+void parse_debug_dump_scd(char *topic, char *argv[], unsigned int argc);
 void parse_system_identify_devices(char *topic, char *argv[], unsigned int argc);
 
 void parse_message(char *topic, char *omsg, unsigned int msgLength);
@@ -42,41 +42,36 @@ void parse_message(char *topic, char *omsg, unsigned int msgLength);
 
 
 struct msgCallbackList msgs[] = {
-  { "SYSTEM.INIT.DEVICE", parse_system_init_device },
-  { "SYSTEM.INIT.DEVICE.SENSOR", parse_system_init_device },
-  { "SYSTEM.INIT.DEVICE.CONTROL", parse_system_init_device },
   { "SYSTEM.IDENTIFY.DEVICES", parse_system_identify_devices },
+
   { "DEVICE.CONFIG.WIFI", parse_device_config_wifi },
   { "DEVICE.CONFIG.NAME", parse_device_config_name },
   { "DEVICE.CONFIG.LOCATION", parse_device_config_location },
   { "DEVICE.CONFIG.MQTT", parse_device_config_mqtt },
-  { "DEVICE.REBOOT", parse_device_reboot },
-  { "DEBUG.CONFIG.DUMP", parse_debug_config_dump },
-  { "DEBUG.CONFIG.RDUMP", parse_debug_rconfig_dump },
-  { "DEBUG.GET.SENSOR", parse_debug_get_sensor },
-  { "DEBUG.SCD.DUMP", parse_debug_scd_dump },
   { "DEVICE.CONFIG.CLEAR", parse_device_config_clear },
+  { "DEVICE.REBOOT", parse_device_reboot },
   { "DEVICE.MQTT.SUBSCRIBE", parse_device_mqtt_subscribe },
-  { "GET.SENSOR", parse_config_stub },
-  { "UPDATE.SENSOR", parse_config_stub },
+
+  { "DEBUG.DUMP.CONFIG", parse_debug_dump_config },
+  { "DEBUG.DUMP.RUNNINGCONFIG", parse_debug_dump_runningconfig },
+  { "DEBUG.DUMP.SCD", parse_debug_dump_scd },
+  { "DEBUG.GET.SENSOR", parse_get_sensor },
+
+  { "GET.SENSOR", parse_get_sensor },
   { "GET.STATE", parse_config_stub },
   { "SET.STATE", parse_config_stub },
+
   { NULL, NULL },
 };
 
-void parse_system_init_device(char *topic, char *argv[], unsigned int argc) {
-  serial_printf("\nEntered parsing function for %s\n", argv[0]);
-  return;
-}
-
 void parse_system_identify_devices(char *topic, char *argv[], unsigned int argc) {
-  msg_to_system(MSG_DEVICE_IDENTIFY, device.name, device.location, device.version, BUILD_DATE, WiFi.macAddress().c_str());
+  msg_to_system(MSG_DEVICE_IDENTIFY, device.name, device.location, VERSION, BUILD_DATE, WiFi.macAddress().c_str());
 }
 
 void parse_config_stub(char *topic, char *argv[], unsigned int argc) {
 
 }
-void parse_debug_scd_dump(char *topic, char *argv[], unsigned int argc) {
+void parse_debug_dump_scd(char *topic, char *argv[], unsigned int argc) {
   sensors_dump_scd_list();
 }
 
@@ -84,28 +79,37 @@ void parse_device_reboot(char *topic, char *argv[], unsigned int argc) {
   ESP.restart();
 }
 
-void parse_debug_config_dump(char *topic, char *argv[], unsigned int argc) {
+void parse_debug_dump_config(char *topic, char *argv[], unsigned int argc) {
   eeprom_dump_config(eeprom_get_config());
 }
 
-void parse_debug_rconfig_dump(char *topic, char *argv[], unsigned int argc) {
+void parse_debug_dump_runningconfig(char *topic, char *argv[], unsigned int argc) {
   eeprom_dump_config(&device);
 }
 
-void parse_debug_get_sensor(char *topic, char *argv[], unsigned int argc) {
+void parse_get_sensor(char *topic, char *argv[], unsigned int argc) {
   struct sensorControlData *scd;
   scd = sensor_get_by_name(argv[1]);
+
   if (!scd) {
     serial_printf("Sensor %s was not found!\n", argv[1]);  
   }
-  else {
+
+  if (scd->isEnabled) sensor_read(scd);
+
+  publish_sensor(scd);
+
+  if (IS_SERIAL_TOPIC(topic)) {
     serial_printf("Sensor %s is currently %s\n", argv[1], scd->currentData);
   } 
+
   return;
 }
 
 void parse_device_config_clear(char *topic, char *argv[], unsigned int argc) {
   memset((void *) &device, 0, sizeof(device));
+
+  eeprom_save_config();
   eeprom_dump_config(&device);
 }
 

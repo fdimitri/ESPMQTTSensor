@@ -37,6 +37,7 @@ struct sensorControlData *sensor_definition_allocate(const char *sensorName, con
 void sensors_publish_all();
 void sensors_read_all();
 int sensor_get_highest_index_by_name(char *name);
+void sensor_read(struct sensorControlData *cptr);
 
 // struct sensorControlData sensors[] = {
 //   { false, "comfort.temperature", "", "", 0, sensor_get_stub, NULL, NULL },
@@ -83,11 +84,15 @@ void sensors_read_all() {
   struct sensorControlData *cptr = scd_head;
   while (cptr) {
     if (cptr->isEnabled) {
-      if (cptr->readSensor) cptr->readSensor(cptr->customData, (char *) &(cptr->currentData[0]));
-      if (cptr->getState) cptr->getState(cptr->customData, (char *) &(cptr->currentData[0]));
+      sensor_read(cptr);
     }
     cptr = cptr->next;
   }
+}
+
+void sensor_read(struct sensorControlData *cptr) {
+  if (cptr->readSensor) cptr->readSensor(cptr->customData, (char *) &(cptr->currentData[0]));
+  if (cptr->getState) cptr->getState(cptr->customData, (char *) &(cptr->currentData[0])); 
 }
 
 void sensors_publish_all() {
