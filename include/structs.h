@@ -28,7 +28,7 @@ struct deviceConfiguration {
   
   char wifi_ssid[32];
   char wifi_psk[32];
-  
+
   char mqtt_broker[32];
   char mqtt_user[32];
   char mqtt_pass[32];
@@ -42,4 +42,14 @@ struct taskRun {
   void (*func)();
   uint16_t run_every_millis;
   unsigned long last_run_time;
+};
+
+enum msg_to_system { 
+  MSG_DEVICE_IDENTIFY,
+  MSG_UPDATE_SENSOR
+  };
+  
+struct msgSystemList {
+  unsigned int msg_id;
+  const char *fmt;
 };

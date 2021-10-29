@@ -28,6 +28,14 @@ void callback(char *topic, byte *payload, unsigned int length);
 void mqtt_connect();
 char *mqtt_build_topic(char *topic);
 void publish_sensor(struct sensorControlData *sensor);
+void msg_to_system(unsigned int msg_id, ...);
+struct msgSystemList *get_system_message_by_id(unsigned int id);
+
+struct msgSystemList system_messages[] = {
+  { MSG_DEVICE_IDENTIFY, "DEVICE.IDENTIFY name:%s location:%s version:%s build_date:%s mac:%s" },
+  { MSG_UPDATE_SENSOR, "UPDATE.SENSOR %s %s"},
+  { 0, NULL }
+};
 
 void callback(char *topic, byte *payload, unsigned int length) {
   display.clearDisplay();
@@ -71,12 +79,32 @@ char *mqtt_build_topic(char *topic) {
 }
 
 void publish_sensor(struct sensorControlData *sensor) {
-  char *buffer = (char *) malloc(256);
-  char *topicbuf = (char *) malloc(256);
-  memset((void *) buffer, 0, 256);
-  memset((void *) topicbuf, 0, 256);
-  sprintf(buffer, "UPDATE.SENSOR %s %s", sensor->sensorName, sensor->currentData);
+  msg_to_system(MSG_UPDATE_SENSOR, sensor->sensorName, sensor->currentData);
+}
+
+void msg_to_system(unsigned int msg_id, ...) {
+  char *buffer = (char *) malloc(BUFFER_SIZE);
+  char *topicbuf = (char *) malloc(BUFFER_SIZE);
+  struct msgSystemList *msg;
+  memset((void *) buffer, 0, BUFFER_SIZE);
+  memset((void *) topicbuf, 0, BUFFER_SIZE);
+
+  msg = get_system_message_by_id(msg_id);
+  
+  va_list args;
+  va_start(args,  msg_id);
+  vsnprintf(buffer, BUFFER_SIZE - 1, msg->fmt, args);
+  va_end(args);
+
   client.publish(mqtt_build_topic(topicbuf), buffer, strlen(buffer) + 1);
+
   free(buffer);
   free(topicbuf);
+}
+
+struct msgSystemList *get_system_message_by_id(unsigned int id) {
+  for (unsigned int i = 0; system_messages[i].fmt != NULL; i++) {
+    if (system_messages[i].msg_id == id) return(&system_messages[i]);
+  }
+  return(NULL);
 }

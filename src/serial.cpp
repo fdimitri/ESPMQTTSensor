@@ -46,6 +46,10 @@ void serial_read(void) {
         }
         memset((void *) &serial_command_buffer, 0, sizeof(serial_command_buffer));
         break;
+      case 56:
+        serial_command_buffer_ptr--;
+        serial_command_buffer[serial_command_buffer_ptr] = 0;
+        break;
       default:
         serial_command_buffer[serial_command_buffer_ptr++] = c;  
     }

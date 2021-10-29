@@ -35,6 +35,7 @@ void parse_debug_config_dump(char *topic, char *argv[], unsigned int argc);
 void parse_debug_rconfig_dump(char *topic, char *argv[], unsigned int argc);
 void parse_debug_get_sensor(char *topic, char *argv[], unsigned int argc);
 void parse_debug_scd_dump(char *topic, char *argv[], unsigned int argc);
+void parse_system_identify_devices(char *topic, char *argv[], unsigned int argc);
 
 void parse_message(char *topic, char *omsg, unsigned int msgLength);
 
@@ -44,6 +45,7 @@ struct msgCallbackList msgs[] = {
   { "SYSTEM.INIT.DEVICE", parse_system_init_device },
   { "SYSTEM.INIT.DEVICE.SENSOR", parse_system_init_device },
   { "SYSTEM.INIT.DEVICE.CONTROL", parse_system_init_device },
+  { "SYSTEM.IDENTIFY.DEVICES", parse_system_identify_devices },
   { "DEVICE.CONFIG.WIFI", parse_device_config_wifi },
   { "DEVICE.CONFIG.NAME", parse_device_config_name },
   { "DEVICE.CONFIG.LOCATION", parse_device_config_location },
@@ -65,6 +67,10 @@ struct msgCallbackList msgs[] = {
 void parse_system_init_device(char *topic, char *argv[], unsigned int argc) {
   serial_printf("\nEntered parsing function for %s\n", argv[0]);
   return;
+}
+
+void parse_system_identify_devices(char *topic, char *argv[], unsigned int argc) {
+  msg_to_system(MSG_DEVICE_IDENTIFY, device.name, device.location, device.version, BUILD_DATE, WiFi.macAddress().c_str());
 }
 
 void parse_config_stub(char *topic, char *argv[], unsigned int argc) {
