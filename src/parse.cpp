@@ -37,6 +37,9 @@ void parse_get_sensor(char *topic, char *argv[], unsigned int argc);
 void parse_debug_dump_scd(char *topic, char *argv[], unsigned int argc);
 void parse_system_identify_devices(char *topic, char *argv[], unsigned int argc);
 void parse_dump_wifi(char *topic, char *argv[], unsigned int argc);
+void parse_debug_dump_mqtt(char *topic, char *argv[], unsigned int argc);
+void parse_debug_kill_mqtt(char *topic, char *argv[], unsigned int argc);
+void parse_debug_kill_wifi(char *topic, char *argv[], unsigned int argc);
 
 void parse_message(char *topic, char *omsg, unsigned int msgLength);
 
@@ -58,7 +61,9 @@ struct msgCallbackList msgs[] = {
   { "DEBUG.DUMP.SCD", parse_debug_dump_scd },
   { "DEBUG.GET.SENSOR", parse_get_sensor },
   { "DEBUG.DUMP.WIFI", parse_dump_wifi },
-
+  { "DEBUG.DUMP.MQTT", parse_debug_dump_mqtt },
+  { "DEBUG.KILL.WIFI", parse_debug_kill_wifi },
+  { "DEBUG.KILL.MQTT", parse_debug_kill_mqtt },
   { "GET.SENSOR", parse_get_sensor },
   { "GET.STATE", parse_config_stub },
   { "SET.STATE", parse_config_stub },
@@ -66,6 +71,20 @@ struct msgCallbackList msgs[] = {
   { NULL, NULL },
 };
 
+void parse_debug_kill_mqtt(char *topic, char *argv[], unsigned int argc) {
+  serial_printf("Killing MQTT!\n");
+  client.disconnect();
+}
+
+void parse_debug_kill_wifi(char *topic, char *argv[], unsigned int argc) {
+  serial_printf("Killing WiFi!\n");
+  WiFi.disconnect();
+}
+
+void parse_debug_dump_mqtt(char *topic, char *argv[], unsigned int argc) {
+  serial_printf("MQTT Status is: %d\n", client.state());
+  serial_printf("MQTT is connecting to %s:%d with %s:%s\n", device.mqtt_broker, device.mqtt_port, device.mqtt_user, device.mqtt_pass);
+}
 void parse_system_identify_devices(char *topic, char *argv[], unsigned int argc) {
   msg_to_system(MSG_DEVICE_IDENTIFY, device.name, device.location, VERSION, BUILD_DATE, WiFi.macAddress().c_str());
 }

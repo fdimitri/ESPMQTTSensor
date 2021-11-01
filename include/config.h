@@ -1,9 +1,3 @@
-#undef ESP8266
-#undef ESP32
-
-//#define ESP32
-#define ESP8266
-
 #define SSD1306_128_32
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels

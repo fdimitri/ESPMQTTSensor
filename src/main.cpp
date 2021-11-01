@@ -1,4 +1,3 @@
-#define ESP8266 yes
 #include <Arduino.h>
 #include <stdint.h>
 #include <PubSubClient.h>
@@ -72,10 +71,6 @@ void setup() {
   display.setCursor(0, 0); 
 
   mqtt_connect();
-
-  char topicbuf[128];
-  client.subscribe("system/#");
-  client.subscribe(mqtt_build_topic((char *) &topicbuf));
 }
 
 void loop() {
@@ -90,7 +85,6 @@ void wifi_connect() {
   WiFi.mode(WIFI_STA);
   serial_printf("Connecting to %s with PSK %s", device.wifi_ssid, device.wifi_psk);
 
-  unsigned int i = 0;
   while (WiFi.status() != WL_CONNECTED) {
       oled_print(".");
       Serial.print(".");
