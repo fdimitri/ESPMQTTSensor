@@ -95,6 +95,10 @@ void parse_debug_dump_runningconfig(char *topic, char *argv[], unsigned int argc
 
 void parse_get_sensor(char *topic, char *argv[], unsigned int argc) {
   struct sensorControlData *scd;
+  if (argc != 2) {
+    // Wrong number of params
+    return;
+  }
   scd = sensor_get_by_name(argv[1]);
 
   if (!scd) {
