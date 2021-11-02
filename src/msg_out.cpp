@@ -34,6 +34,7 @@ struct msgSystemList system_messages[] = {
   { MSG_UPDATE_SENSOR, "UPDATE.SENSOR %s %s"},
   { MSG_ERROR_INCORRECT_PARAM_COUNT, "DEVICE.ERROR.PARAMS want:%d got:%d args:%s"},
   { MSG_ERROR_SENSOR_NOT_FOUND, "DEVICE.ERROR.SENSOR.NOTFOUND name:%s" },
+  { MSG_ERROR_COMMAND_NOT_FOUND, "DEVICE.ERROR.COMMAND.NOTFOUND name:%s "},
   { 0, NULL }
 };
 

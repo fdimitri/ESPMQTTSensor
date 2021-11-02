@@ -49,6 +49,7 @@ enum msg_to_system {
   MSG_UPDATE_SENSOR,
   MSG_ERROR_INCORRECT_PARAM_COUNT = 0x8000,
   MSG_ERROR_SENSOR_NOT_FOUND,
+  MSG_ERROR_COMMAND_NOT_FOUND,
   };
   
 struct msgSystemList {
