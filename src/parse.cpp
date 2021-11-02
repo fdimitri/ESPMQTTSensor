@@ -175,7 +175,7 @@ void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc) {
   serial_printf("\n");
   
   memset((void *) &device.wifi_ssid, 0, sizeof(device.wifi_ssid));
-  memset((void *) &device.wifi_psk, 0, sizeof(device.wifi_psk);
+  memset((void *) &device.wifi_psk, 0, sizeof(device.wifi_psk));
   strcpy((char *) &device.wifi_ssid, argv[1]);
   strcpy((char *) &device.wifi_psk, argv[2]);
 
