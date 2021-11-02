@@ -22,6 +22,7 @@
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"
 #include "main.h"
+#include "msg_out.h"
 
 void parse_config_stub(char *, char *[], unsigned int);
 void parse_device_config_name(char *, char *[], unsigned int);
@@ -53,17 +54,22 @@ struct msgCallbackList msgs[] = {
   { "DEVICE.CONFIG.LOCATION", parse_device_config_location },
   { "DEVICE.CONFIG.MQTT", parse_device_config_mqtt },
   { "DEVICE.CONFIG.CLEAR", parse_device_config_clear },
+
   { "DEVICE.REBOOT", parse_device_reboot },
+
   { "DEVICE.MQTT.SUBSCRIBE", parse_device_mqtt_subscribe },
 
   { "DEBUG.DUMP.CONFIG", parse_debug_dump_config },
   { "DEBUG.DUMP.RUNNINGCONFIG", parse_debug_dump_runningconfig },
   { "DEBUG.DUMP.SCD", parse_debug_dump_scd },
-  { "DEBUG.GET.SENSOR", parse_get_sensor },
   { "DEBUG.DUMP.WIFI", parse_dump_wifi },
   { "DEBUG.DUMP.MQTT", parse_debug_dump_mqtt },
+
+  { "DEBUG.GET.SENSOR", parse_get_sensor },
+
   { "DEBUG.KILL.WIFI", parse_debug_kill_wifi },
   { "DEBUG.KILL.MQTT", parse_debug_kill_mqtt },
+
   { "GET.SENSOR", parse_get_sensor },
   { "GET.STATE", parse_config_stub },
   { "SET.STATE", parse_config_stub },
@@ -115,13 +121,14 @@ void parse_debug_dump_runningconfig(char *topic, char *argv[], unsigned int argc
 void parse_get_sensor(char *topic, char *argv[], unsigned int argc) {
   struct sensorControlData *scd;
   if (argc != 2) {
-    // Wrong number of params
+    msg_to_serial(MSG_ERROR_INCORRECT_PARAM_COUNT, 2, argc, "DEVICE.SENSOR.GET [SENSOR_NAME]");
     return;
   }
+
   scd = sensor_get_by_name(argv[1]);
 
   if (!scd) {
-    serial_printf("Sensor %s was not found!\n", argv[1]);  
+    msg_to_serial(MSG_ERROR_SENSOR_NOT_FOUND, argv[1]);
   }
 
   if (scd->isEnabled) sensor_read(scd);
@@ -147,11 +154,12 @@ void parse_device_mqtt_subscribe(char *topic, char *argv[], unsigned int argc) {
 }
 
 void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc) {
-  // DEVICE.CONFIG.WIFI
+  // DEVICE.CONFIG.WIFI [SSID] [PSK]
   if (argc != 3) {
-    // incorrect number of params
+    msg_to_serial(MSG_ERROR_INCORRECT_PARAM_COUNT, 3, argc, "DEVICE.CONFIG.WIFI [SSID] [PSK]");
     return;
   }
+
   serial_printf("parse_device_config_wifi, argc: %d\n", argc);
   for (unsigned int i = 0; i < argc; i++) {
     serial_printf("%s ", argv[i]);
@@ -162,6 +170,7 @@ void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc) {
   memset((void *) &device.wifi_psk, 0, 32);
   strcpy((char *) &device.wifi_ssid, argv[1]);
   strcpy((char *) &device.wifi_psk, argv[2]);
+
   eeprom_save_config();
   wifi_connect();
 }

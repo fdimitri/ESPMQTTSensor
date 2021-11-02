@@ -46,7 +46,9 @@ struct taskRun {
 
 enum msg_to_system { 
   MSG_DEVICE_IDENTIFY,
-  MSG_UPDATE_SENSOR
+  MSG_UPDATE_SENSOR,
+  MSG_ERROR_INCORRECT_PARAM_COUNT = 0x8000,
+  MSG_ERROR_SENSOR_NOT_FOUND,
   };
   
 struct msgSystemList {
