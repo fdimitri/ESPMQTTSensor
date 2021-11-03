@@ -38,14 +38,16 @@ void callback(char *topic, byte *payload, unsigned int length) {
   oled_msgLn((char *) payload, length);
   parse_message(topic, (char *) payload, length);
 }
-
 void mqtt_connect() {
   char msgbuf[256];
   uint8_t retrycount = 64;
   
   if (client.connected()) return;
 
-  serial_printf("Connecting to MQTT..\n");
+  String client_id = "esp8266-client-";
+  client_id += String(WiFi.macAddress());
+
+  msg_to_serial(MSG_INFO_MQTT_CONNECTING, device.mqtt_broker, device.mqtt_port, device.mqtt_user, device.mqtt_pass, client_id.c_str());
   oled_printf("MQTT on port %d\n%s\n", device.mqtt_port, device.mqtt_broker);
   
   client.setServer(device.mqtt_broker, device.mqtt_port);
@@ -54,15 +56,12 @@ void mqtt_connect() {
   while (!client.connected() && retrycount--) {
       task_read_serial();
       oled_msg((char *) &msgbuf, strlen(msgbuf));    
-      String client_id = "esp8266-client-";
-      client_id += String(WiFi.macAddress());
-      Serial.printf("Client %s is connecting to the mqtt broker\n", client_id.c_str());
+
       if (client.connect(client_id.c_str(), device.mqtt_user, device.mqtt_pass)) {
-          serial_printf("Connected to MQTT server %s:%d with %s:%s\n", device.mqtt_broker, device.mqtt_port, device.mqtt_user, device.mqtt_pass);
+          msg_to_serial(MSG_INFO_MQTT_CONNECTED);
       } else {
-          Serial.print("failed with state ");
           oled_printf("MQTT failed with state: %d\n", client.state());
-          Serial.print(client.state());
+          msg_to_serial(MSG_INFO_MQTT_FAILED, client.state());
           delay(2000);
       }
       delay(500);

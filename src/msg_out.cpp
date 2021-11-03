@@ -31,10 +31,18 @@ struct msgSystemList *get_system_message_by_id(unsigned int id);
 
 struct msgSystemList system_messages[] = {
   { MSG_DEVICE_IDENTIFY, "DEVICE.IDENTIFY name:%s location:%s version:%s build_date:%s mac:%s" },
+
   { MSG_UPDATE_SENSOR, "UPDATE.SENSOR %s %s"},
+
   { MSG_ERROR_INCORRECT_PARAM_COUNT, "DEVICE.ERROR.PARAMS want:%d got:%d args:%s"},
   { MSG_ERROR_SENSOR_NOT_FOUND, "DEVICE.ERROR.SENSOR.NOTFOUND name:%s" },
   { MSG_ERROR_COMMAND_NOT_FOUND, "DEVICE.ERROR.COMMAND.NOTFOUND name:%s "},
+
+  { MSG_INFO_MQTT_CONNECTING, "DEVICE.MQTT.CONNECTING host:%s port:%d user:%s pass:%s client_id:%s " },
+  { MSG_INFO_MQTT_CONNECTED, "DEVICE.MQTT.CONNECTSUCCESS" },
+  { MSG_INFO_MQTT_FAILED, "DEVICE.MQTT.CONNECTFAILED state:%d" },
+  { MSG_INFO_MQTT_STATUS, "DEVICE.MQTT.STATUS host:%s port:%d user:%s pass:%s state:%d" },
+
   { 0, NULL }
 };
 

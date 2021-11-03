@@ -164,6 +164,12 @@ int sensor_definition_register_functions(struct sensorControlData *newscd) {
 
 struct sensorControlData *sensor_get_by_name(char *name) {
   struct sensorControlData *cptr = scd_head;
+  
+  for (cptr = scd_head; cptr; cptr = cptr->next) {
+    if (!strcmp(cptr->sensorName, name)) {
+      return(cptr);
+    }
+  }
   while (cptr) {
     if (!strcmp(cptr->sensorName, name)) {
       return(cptr);

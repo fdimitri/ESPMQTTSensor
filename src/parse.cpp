@@ -88,8 +88,7 @@ void parse_debug_kill_wifi(char *topic, char *argv[], unsigned int argc) {
 }
 
 void parse_debug_dump_mqtt(char *topic, char *argv[], unsigned int argc) {
-  serial_printf("MQTT Status is: %d\n", client.state());
-  serial_printf("MQTT is connecting to %s:%d with %s:%s\n", device.mqtt_broker, device.mqtt_port, device.mqtt_user, device.mqtt_pass);
+  msg_to_serial(MSG_INFO_MQTT_STATUS, device.mqtt_broker, device.mqtt_port, device.mqtt_user, device.mqtt_pass, client.state());
 }
 
 void parse_system_identify_devices(char *topic, char *argv[], unsigned int argc) {
@@ -136,7 +135,7 @@ void parse_get_sensor(char *topic, char *argv[], unsigned int argc) {
   publish_sensor(scd);
 
   if (IS_SERIAL_TOPIC(topic)) {
-    serial_printf("Sensor %s is currently %s\n", argv[1], scd->currentData);
+    msg_to_serial(MSG_UPDATE_SENSOR, argv[1], scd->currentData);
   } 
 
   return;
@@ -168,17 +167,7 @@ void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc) {
     return;
   }
 
-  serial_printf("parse_device_config_wifi, argc: %d\n", argc);
-  for (unsigned int i = 0; i < argc; i++) {
-    serial_printf("%s ", argv[i]);
-  }
-  serial_printf("\n");
-  
-  memset((void *) &device.wifi_ssid, 0, sizeof(device.wifi_ssid));
-  memset((void *) &device.wifi_psk, 0, sizeof(device.wifi_psk));
-  strcpy((char *) &device.wifi_ssid, argv[1]);
-  strcpy((char *) &device.wifi_psk, argv[2]);
-
+  eeprom_set_wifi(argv[1], argv[2]);
   eeprom_save_config();
 
   wifi_connect();
@@ -187,22 +176,13 @@ void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc) {
 }
 
 void parse_device_config_mqtt(char *topic, char *argv[], unsigned int argc) {
-  // DEVICE.CONFIG.WIFI
+  // DEVICE.CONFIG.MQTT
   if (argc != 5) {
     msg_to_serial(MSG_ERROR_INCORRECT_PARAM_COUNT, 5, argc, "DEVICE.CONFIG.MQTT [BROKER] [PORT] [USER] [PASS]");
     return;
   }
 
-  memset((void *) &device.mqtt_broker, 0, sizeof(device.mqtt_broker));
-  memset((void *) &device.mqtt_port, 0, sizeof(device.mqtt_port));
-  memset((void *) &device.mqtt_user, 0, sizeof(device.mqtt_user));
-  memset((void *) &device.mqtt_pass, 0, sizeof(device.mqtt_pass));
-
-  strcpy((char *) &device.mqtt_broker, argv[1]);
-  device.mqtt_port = atoi(argv[2]);
-  strcpy((char *) &device.mqtt_user, argv[3]);
-  strcpy((char *) &device.mqtt_pass, argv[4]);
-
+  eeprom_set_mqtt(argv[1], atoi(argv[2]), argv[3], argv[4]);
   eeprom_save_config();
 
   mqtt_connect();
@@ -216,7 +196,7 @@ void parse_device_config_name(char *topic, char *argv[], unsigned int argc) {
     return;
   }
   
-  memset((void *) &device.name, 0, 64);
+  memset((void *) &device.name, 0, sizeof(device.name));
   memcpy(device.name, argv[1], strlen(argv[1]));
 
   eeprom_save_config();
