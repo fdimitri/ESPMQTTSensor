@@ -18,7 +18,6 @@
 #include "display.h"
 #include "mqtt.h"
 #include "serial.h"
-#include "project_eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"
@@ -96,7 +95,10 @@ void msg_to_system(unsigned int msg_id, ...) {
 
 struct msgSystemList *get_system_message_by_id(unsigned int id) {
   for (unsigned int i = 0; system_messages[i].fmt != NULL; i++) {
-    if (system_messages[i].msg_id == id) return(&system_messages[i]);
+    if (system_messages[i].msg_id == id) {
+      return(&system_messages[i]);
+    }
   }
+
   return(NULL);
 }

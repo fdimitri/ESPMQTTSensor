@@ -16,7 +16,6 @@
 #include "display.h"
 #include "mqtt.h"
 #include "serial.h"
-#include "project_eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"
@@ -31,6 +30,7 @@
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+DeviceConfigurator deviceConfig;
 
 void wifi_connect();
 
@@ -44,15 +44,11 @@ void setup() {
   #endif
 
   Wire.setClock(CONFIG_IIC_SPEED);
-
-  eeprom_init();
-  int config_load_result = eeprom_load_config();
-  eeprom_dump_config(eeprom_get_config());
-
-  if (config_load_result < 0 || device.wifi_ssid[1] == 0xFF || device.wifi_ssid[0] == 0x00) {
+  EEPROM.begin(EEPROM_SIZE);
+  
+  if (!deviceConfig.isValidConfig) {
     serial_printf("Device not configured or CRC32 invalid, loading default configuration");
-    eeprom_save_default_config();
-
+    //deviceConfig.loadDefaultConfig();
   }
 
   Serial.println("Initializing display..");
@@ -60,10 +56,11 @@ void setup() {
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
   }
+
   oled_init();
   sensors_init();
 
-  oled_printf("Starting up!\nWiFi SSD:\n%s", device.wifi_ssid);
+  oled_printf("Starting up!\nWiFi SSD:\n%s", deviceConfig.getWifiSSID());
 
   wifi_connect();
 
@@ -81,9 +78,11 @@ void loop() {
 
 void wifi_connect() {
   if (WiFi.status() == WL_CONNECTED) return;
-  WiFi.begin(device.wifi_ssid, device.wifi_psk);
   WiFi.mode(WIFI_STA);
-  serial_printf("Connecting to %s with PSK %s", device.wifi_ssid, device.wifi_psk);
+
+  WiFi.begin(deviceConfig.getWifiSSID(), deviceConfig.getWifiPSK());
+
+  serial_printf("Connecting to %s with PSK %s", deviceConfig.getWifiSSID(), deviceConfig.getWifiPSK());
 
   while (WiFi.status() != WL_CONNECTED) {
       oled_print(".");

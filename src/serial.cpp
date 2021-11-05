@@ -18,7 +18,6 @@
 #include "display.h"
 #include "mqtt.h"
 // #include "serial.h"
-#include "project_eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"
@@ -46,7 +45,7 @@ void serial_read(void) {
         }
         memset((void *) &serial_command_buffer, 0, sizeof(serial_command_buffer));
         break;
-      case '\08':
+      case '\b':
         serial_command_buffer_ptr--;
         serial_command_buffer[serial_command_buffer_ptr] = 0;
         break;

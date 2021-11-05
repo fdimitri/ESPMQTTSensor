@@ -17,7 +17,6 @@
 #include "display.h"
 #include "mqtt.h"
 #include "serial.h"
-#include "project_eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"
@@ -43,6 +42,8 @@ void parse_debug_kill_mqtt(char *topic, char *argv[], unsigned int argc);
 void parse_debug_kill_wifi(char *topic, char *argv[], unsigned int argc);
 
 void parse_message(char *topic, char *omsg, unsigned int msgLength);
+
+extern DeviceConfigurator deviceConfig;
 
 
 
@@ -88,11 +89,11 @@ void parse_debug_kill_wifi(char *topic, char *argv[], unsigned int argc) {
 }
 
 void parse_debug_dump_mqtt(char *topic, char *argv[], unsigned int argc) {
-  msg_to_serial(MSG_INFO_MQTT_STATUS, device.mqtt_broker, device.mqtt_port, device.mqtt_user, device.mqtt_pass, client.state());
+  msg_to_serial(MSG_INFO_MQTT_STATUS, deviceConfig.getMQTTBroker(), deviceConfig.getMQTTPort(), deviceConfig.getMQTTUser(), deviceConfig.getMQTTPass(), client.state());
 }
 
 void parse_system_identify_devices(char *topic, char *argv[], unsigned int argc) {
-  msg_to_system(MSG_DEVICE_IDENTIFY, device.name, device.location, VERSION, BUILD_DATE, WiFi.macAddress().c_str());
+  msg_to_system(MSG_DEVICE_IDENTIFY, deviceConfig.getDeviceName(), deviceConfig.getDeviceLocation(), VERSION, BUILD_DATE, WiFi.macAddress().c_str());
 }
 
 void parse_config_stub(char *topic, char *argv[], unsigned int argc) {
@@ -111,11 +112,11 @@ void parse_dump_wifi(char *topic, char *argv[], unsigned int argc) {
 }
 
 void parse_debug_dump_config(char *topic, char *argv[], unsigned int argc) {
-  eeprom_dump_config(eeprom_get_config());
+  // eeprom_dump_config(eeprom_get_config());
 }
 
 void parse_debug_dump_runningconfig(char *topic, char *argv[], unsigned int argc) {
-  eeprom_dump_config(&device);
+  // eeprom_dump_config(&device);
 }
 
 void parse_get_sensor(char *topic, char *argv[], unsigned int argc) {
@@ -142,11 +143,8 @@ void parse_get_sensor(char *topic, char *argv[], unsigned int argc) {
 }
 
 void parse_device_config_clear(char *topic, char *argv[], unsigned int argc) {
-  memset((void *) &device, 0, sizeof(device));
-
-  eeprom_save_config();
-  eeprom_dump_config(&device);
-
+  deviceConfig.saveDefaultConfiguration();
+  
   return;
 }
 
@@ -167,8 +165,8 @@ void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc) {
     return;
   }
 
-  eeprom_set_wifi(argv[1], argv[2]);
-  eeprom_save_config();
+  deviceConfig.setWiFiParameters(argv[1], argv[2]);
+  deviceConfig.saveConfiguration();
 
   wifi_connect();
 
@@ -178,12 +176,12 @@ void parse_device_config_wifi(char *topic, char *argv[], unsigned int argc) {
 void parse_device_config_mqtt(char *topic, char *argv[], unsigned int argc) {
   // DEVICE.CONFIG.MQTT
   if (argc != 5) {
-    msg_to_serial(MSG_ERROR_INCORRECT_PARAM_COUNT, 5, argc, "DEVICE.CONFIG.MQTT [BROKER] [PORT] [USER] [PASS]");
+    msg_to_serial(MSG_ERROR_INCORRECT_PARAM_COUNT, 5, argc, argv[argc-1]);//"DEVICE.CONFIG.MQTT [BROKER] [PORT] [USER] [PASS]");
     return;
   }
 
-  eeprom_set_mqtt(argv[1], atoi(argv[2]), argv[3], argv[4]);
-  eeprom_save_config();
+  deviceConfig.setMQTTParameters(argv[1], atoi(argv[2]), argv[3], argv[4]);
+  deviceConfig.saveConfiguration();
 
   mqtt_connect();
 
@@ -195,11 +193,9 @@ void parse_device_config_name(char *topic, char *argv[], unsigned int argc) {
     msg_to_serial(MSG_ERROR_INCORRECT_PARAM_COUNT, 2, argc, "DEVICE.CONFIG.NAME [NAME]");
     return;
   }
-  
-  memset((void *) &device.name, 0, sizeof(device.name));
-  memcpy(device.name, argv[1], strlen(argv[1]));
 
-  eeprom_save_config();
+  deviceConfig.setDeviceName(argv[1]);  
+  deviceConfig.saveConfiguration();
 
   return;
 }
@@ -210,10 +206,8 @@ void parse_device_config_location(char *topic, char *argv[], unsigned int argc) 
     return;
   }
 
-  memset((void *) &device.location, 0, 64);
-  memcpy(device.location, argv[1], strlen(argv[1]));
-
-  eeprom_save_config();
+  deviceConfig.setDeviceLocation(argv[1]);  
+  deviceConfig.saveConfiguration();
 
   return;
 }
@@ -236,7 +230,7 @@ void parse_message(char *topic, char *omsg, unsigned int msgLength) {
   }
   
   for (unsigned int i = 0; msgs[i].command != NULL; i++) {
-    if (strlen(msgs[i].command) == strlen(argv[0]) && !strcmp(msgs[i].command, argv[0])) {
+    if (!strcmp(msgs[i].command, argv[0])) {
       msgs[i].callback(topic, argv, argc + 1);
       free(msgstart);
       return;

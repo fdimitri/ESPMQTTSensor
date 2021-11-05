@@ -17,7 +17,6 @@
 #include "display.h"
 #include "mqtt.h"
 #include "serial.h"
-#include "project_eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"

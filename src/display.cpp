@@ -18,12 +18,12 @@
 // #include "display.h"
 #include "mqtt.h"
 #include "serial.h"
-#include "project_eeprom.h"
 #include "tasks.h"
 #include "sensor_htu31.h"
 #include "sensor_bme280.h"
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+
 void oled_msgLn(char *str, unsigned int length);
 void oled_msg(const char *str, unsigned int length);
 void oled_printf(const char *fmt, ...);
