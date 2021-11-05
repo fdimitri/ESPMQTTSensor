@@ -112,11 +112,11 @@ void parse_dump_wifi(char *topic, char *argv[], unsigned int argc) {
 }
 
 void parse_debug_dump_config(char *topic, char *argv[], unsigned int argc) {
-  // eeprom_dump_config(eeprom_get_config());
+  deviceConfig.dumpConfiguration(deviceConfig.readStartupConfiguration());
 }
 
 void parse_debug_dump_runningconfig(char *topic, char *argv[], unsigned int argc) {
-  // eeprom_dump_config(&device);
+  deviceConfig.dumpConfiguration();
 }
 
 void parse_get_sensor(char *topic, char *argv[], unsigned int argc) {
@@ -144,7 +144,7 @@ void parse_get_sensor(char *topic, char *argv[], unsigned int argc) {
 
 void parse_device_config_clear(char *topic, char *argv[], unsigned int argc) {
   deviceConfig.saveDefaultConfiguration();
-  
+
   return;
 }
 

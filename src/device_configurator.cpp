@@ -44,17 +44,22 @@ deviceConfiguration device_default_config = {
 
 DeviceConfigurator::DeviceConfigurator() {
     this->device = (deviceConfiguration *) malloc(sizeof(deviceConfiguration));
-    EEPROM.begin(EEPROM_SIZE);
-    if (loadStartupConfiguration() < 0) {
-        isValidConfig = false;
-    }
-    else {
-        isValidConfig = true;
-    }
 }
 
 DeviceConfigurator::~DeviceConfigurator(void) {
     free(this->device);
+}
+
+void DeviceConfigurator::begin() {
+  int e;
+  if ((e = loadStartupConfiguration()) < 0) {
+      serial_printf("Return from loadStartupConfig was %d\n", e);
+      isValidConfig = false;
+      memset(this->device, 0, sizeof(deviceConfiguration));
+  }
+  else {
+      isValidConfig = true;
+  }
 }
 
 void DeviceConfigurator::saveDefaultConfiguration() {
@@ -70,7 +75,7 @@ void DeviceConfigurator::saveConfiguration() {
 
   this->device->crc32 = newcrc;
   
-  EEPROM.put(EEPROM_DEVICE_CONFIG_OFFSET, this->device);
+  EEPROM.writeBytes(EEPROM_DEVICE_CONFIG_OFFSET, this->device, sizeof(this->device));
 
   if (!EEPROM.commit()) {
     serial_printf("EEPROM.commit() failed!\n");
@@ -90,7 +95,7 @@ uint32_t DeviceConfigurator::getCRC(deviceConfiguration *d) {
 deviceConfiguration *DeviceConfigurator::readStartupConfiguration() {
   static deviceConfiguration d;
 
-  EEPROM.get(EEPROM_DEVICE_CONFIG_OFFSET, d);
+  EEPROM.readBytes(EEPROM_DEVICE_CONFIG_OFFSET, &d, sizeof(deviceConfiguration));
 
   uint32_t crc = getCRC(&d);
 
@@ -106,10 +111,13 @@ deviceConfiguration *DeviceConfigurator::readStartupConfiguration() {
 
 int DeviceConfigurator::loadStartupConfiguration() {
     deviceConfiguration *d = readStartupConfiguration();
+  
     if (getCRC(d) != d->crc32) {
         return(-ECONFIG_INVALID_CRC);
     }
+  
     memcpy((void *) this->device, (void *) readStartupConfiguration(), sizeof(deviceConfiguration));
+
     return(0);
 }
 
@@ -131,8 +139,6 @@ void DeviceConfigurator::setWiFiParameters(char *ssid, char *psk) {
   
   strncpy((char *) this->device->wifi.ssid, ssid, sizeof(this->device->wifi.ssid));
   strncpy((char *) this->device->wifi.psk, psk, sizeof(this->device->wifi.psk));
-
-  return;
 }
 
 const char *DeviceConfigurator::getWifiSSID() {
@@ -178,6 +184,17 @@ void DeviceConfigurator::setDeviceName(char *name) {
 }
 
 void DeviceConfigurator::dumpConfiguration(deviceConfiguration *d) {
+  serial_printf("Version: %s, %d\n", d->version, d->config_version);
+  serial_printf("Name: %s, Location: %s\n", d->name, d->location);
+  serial_printf("SSID: %s, PSK: %s\n", d->wifi.ssid, d->wifi.psk);
+  serial_printf("MQTT Server: %s:%d\n", d->mqtt.broker, d->mqtt.port);
+  serial_printf("MQTT User/pass: %s %s\n", d->mqtt.user, d->mqtt.pass);
+  serial_printf("CRC32: %x\n", d->crc32);
+}
+
+
+void DeviceConfigurator::dumpConfiguration() {
+  deviceConfiguration *d = this->device;
   serial_printf("Version: %s, %d\n", d->version, d->config_version);
   serial_printf("Name: %s, Location: %s\n", d->name, d->location);
   serial_printf("SSID: %s, PSK: %s\n", d->wifi.ssid, d->wifi.psk);

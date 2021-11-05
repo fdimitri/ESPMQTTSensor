@@ -35,6 +35,8 @@ DeviceConfigurator deviceConfig;
 void wifi_connect();
 
 void setup() {
+  bool eepromOK = EEPROM.begin(EEPROM_SIZE);
+  delay(2000);
   Serial.begin(115200);
   #ifdef ESP32
   Wire.begin();
@@ -44,8 +46,11 @@ void setup() {
   #endif
 
   Wire.setClock(CONFIG_IIC_SPEED);
-  EEPROM.begin(EEPROM_SIZE);
-  
+  serial_printf("Hello! %s\n", eepromOK ? "true" : "false");
+  // EEPROM.begin(EEPROM_SIZE);
+  // delay(1000);
+  deviceConfig.begin();
+
   if (!deviceConfig.isValidConfig) {
     serial_printf("Device not configured or CRC32 invalid, loading default configuration");
     //deviceConfig.loadDefaultConfig();

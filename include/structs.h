@@ -99,14 +99,15 @@ class DeviceConfigurator {
     DeviceConfigurator();
     ~DeviceConfigurator(void);
     uint32_t getCRC(deviceConfiguration *d);
-
+    void begin();
     deviceConfiguration *readStartupConfiguration();
     int loadStartupConfiguration();
-    
+
     void saveDefaultConfiguration();
     void saveConfiguration();
 
     void dumpConfiguration(deviceConfiguration *d);
+    void dumpConfiguration();
 
     void setMQTTParameters(char *broker, unsigned int port, char *user, char *pass);
     void setWiFiParameters(char *ssid, char *psk);
