@@ -42,6 +42,7 @@ int adc8266_register_functions() {
     struct sensorControlData *cptr;
 
     serial_printf("Allocating ram for cptr\n");
+    
     cptr = sensor_definition_allocate("system.batteryVoltage", "adc8266", adc8266_read_voltage, NULL, NULL, 0x0, NULL);
     sensor_definition_register(cptr);
 
