@@ -35,14 +35,16 @@ DeviceConfigurator deviceConfig;
 void wifi_connect();
 
 void setup() {
-  bool eepromOK = EEPROM.begin(EEPROM_SIZE);
   delay(2000);
   Serial.begin(115200);
   #ifdef ESP32
+  bool eepromOK = EEPROM.begin(EEPROM_SIZE);
   Wire.begin();
   #endif
   #ifdef ESP8266
   Wire.begin(2,0);
+  bool eepromOK = 1;
+  EEPROM.begin(EEPROM_SIZE);
   #endif
 
   Wire.setClock(CONFIG_IIC_SPEED);

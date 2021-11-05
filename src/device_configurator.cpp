@@ -74,9 +74,12 @@ void DeviceConfigurator::saveConfiguration() {
   uint32_t newcrc = getCRC(this->device);
 
   this->device->crc32 = newcrc;
-  
+#ifdef ESP32  
   EEPROM.writeBytes(EEPROM_DEVICE_CONFIG_OFFSET, this->device, sizeof(this->device));
-
+#endif
+#ifdef ESP8266
+  EEPROM.put(EEPROM_DEVICE_CONFIG_OFFSET, (deviceConfiguration) *this->device);
+#endif
   if (!EEPROM.commit()) {
     serial_printf("EEPROM.commit() failed!\n");
     return;
@@ -94,9 +97,12 @@ uint32_t DeviceConfigurator::getCRC(deviceConfiguration *d) {
 
 deviceConfiguration *DeviceConfigurator::readStartupConfiguration() {
   static deviceConfiguration d;
-
+#ifdef ESP32
   EEPROM.readBytes(EEPROM_DEVICE_CONFIG_OFFSET, &d, sizeof(deviceConfiguration));
-
+#endif
+#ifdef ESP8266
+  EEPROM.get(EEPROM_DEVICE_CONFIG_OFFSET, d);
+#endif
   uint32_t crc = getCRC(&d);
 
   if (crc != d.crc32) {
@@ -128,17 +134,17 @@ void DeviceConfigurator::setMQTTParameters(char *broker, unsigned int port, char
   memset((void *) this->device->mqtt.user, 0, sizeof(this->device->mqtt.user));
   memset((void *) this->device->mqtt.pass, 0, sizeof(this->device->mqtt.pass));
 
-  strncpy((char *) this->device->mqtt.broker, broker, sizeof(this->device->mqtt.broker));
-  strncpy((char *) this->device->mqtt.user, user, sizeof(this->device->mqtt.user));
-  strncpy((char *) this->device->mqtt.pass, pass, sizeof(this->device->mqtt.pass));
+  strncpy((char *) this->device->mqtt.broker, broker, sizeof(this->device->mqtt.broker) - 1);
+  strncpy((char *) this->device->mqtt.user, user, sizeof(this->device->mqtt.user) - 1);
+  strncpy((char *) this->device->mqtt.pass, pass, sizeof(this->device->mqtt.pass) - 1);
 }
 
 void DeviceConfigurator::setWiFiParameters(char *ssid, char *psk) {
   memset((void *) this->device->wifi.ssid, 0, sizeof(this->device->wifi.ssid));
   memset((void *) this->device->wifi.psk, 0, sizeof(this->device->wifi.psk));
   
-  strncpy((char *) this->device->wifi.ssid, ssid, sizeof(this->device->wifi.ssid));
-  strncpy((char *) this->device->wifi.psk, psk, sizeof(this->device->wifi.psk));
+  strncpy((char *) this->device->wifi.ssid, ssid, sizeof(this->device->wifi.ssid) - 1);
+  strncpy((char *) this->device->wifi.psk, psk, sizeof(this->device->wifi.psk) - 1);
 }
 
 const char *DeviceConfigurator::getWifiSSID() {
@@ -175,12 +181,12 @@ int DeviceConfigurator::getMQTTPort() {
 
 void DeviceConfigurator::setDeviceLocation(char *location) {
     memset((void *) this->device->location, 0, sizeof(this->device->location));
-    strncpy(this->device->location, location, sizeof(this->device->location));
+    strncpy(this->device->location, location, sizeof(this->device->location) - 1);
 }
 
 void DeviceConfigurator::setDeviceName(char *name) {
     memset((void *) this->device->name, 0, sizeof(this->device->name));
-    strncpy(this->device->name, name, sizeof(this->device->name));
+    strncpy(this->device->name, name, sizeof(this->device->name) - 1);
 }
 
 void DeviceConfigurator::dumpConfiguration(deviceConfiguration *d) {
@@ -195,11 +201,6 @@ void DeviceConfigurator::dumpConfiguration(deviceConfiguration *d) {
 
 void DeviceConfigurator::dumpConfiguration() {
   deviceConfiguration *d = this->device;
-  serial_printf("Version: %s, %d\n", d->version, d->config_version);
-  serial_printf("Name: %s, Location: %s\n", d->name, d->location);
-  serial_printf("SSID: %s, PSK: %s\n", d->wifi.ssid, d->wifi.psk);
-  serial_printf("MQTT Server: %s:%d\n", d->mqtt.broker, d->mqtt.port);
-  serial_printf("MQTT User/pass: %s %s\n", d->mqtt.user, d->mqtt.pass);
-  serial_printf("CRC32: %x\n", d->crc32);
+  dumpConfiguration(d);
 }
 
